@@ -1,0 +1,26 @@
+problem_type: classification   # or regression
+
+data:
+  path: data/sample.csv        # path to your CSV file (relative or absolute)
+  features: [feature1, feature2, feature3, habitat]  # columns to use as inputs
+  label: label                 # column to predict
+  test_size: 0.2               # fraction reserved for final testing
+  val_size: 0.2                # fraction of remaining used for validation
+  random_state: 0              # controls the data split reproducibly
+  scaling: standard            # standard|minmax (how to scale numeric columns)
+  impute_strategy: mean        # mean|median|most_frequent (for missing values)
+
+model:
+  name: mlp                    # mlp|random_forest|svm|xgboost|logistic
+  params:
+    hidden_layer_sizes: [32]   # for mlp: one hidden layer of size 32
+    max_iter: 300              # training iterations
+    early_stopping: true       # stop when validation stops improving (mlp)
+    validation_fraction: 0.1   # fraction used for early stopping inside mlp
+
+training:
+  repetitions: 3               # number of runs if seeds not provided
+  random_seed: 0               # base seed; runs are 0,1,2
+  # seeds: [1, 2, 3]          # optionally specify exact seeds (overrides repetitions)
+
+output_dir: outputs            # where models and reports are saved
