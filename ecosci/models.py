@@ -39,12 +39,17 @@ class ModelZoo:
                                      max_iter=params.get("max_iter", 200),
                                      early_stopping=params.get("early_stopping", True),
                                      validation_fraction=params.get("validation_fraction", 0.1),
+                                     n_iter_no_change=params.get("n_iter_no_change", 10),
                                      random_state=params.get("random_state", 0),
-                                     **{k: v for k, v in params.items() if k not in ["hidden_layer_sizes", "max_iter", "early_stopping", "validation_fraction", "random_state"]})
+                                     **{k: v for k, v in params.items() if k not in ["hidden_layer_sizes", "max_iter", "early_stopping", "validation_fraction", "n_iter_no_change", "random_state"]})
             else:
                 return MLPRegressor(hidden_layer_sizes=tuple(params.get("hidden_layer_sizes", (32,))),
                                      max_iter=params.get("max_iter", 200),
-                                     random_state=params.get("random_state", 0))
+                                     early_stopping=params.get("early_stopping", True),
+                                     validation_fraction=params.get("validation_fraction", 0.1),
+                                     n_iter_no_change=params.get("n_iter_no_change", 10),
+                                     random_state=params.get("random_state", 0),
+                                     **{k: v for k, v in params.items() if k not in ["hidden_layer_sizes", "max_iter", "early_stopping", "validation_fraction", "n_iter_no_change", "random_state"]})
 
         if name.lower() == "random_forest":
             from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor

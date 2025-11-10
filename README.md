@@ -135,6 +135,8 @@ models:
 - `hidden_layer_sizes`: List of layer sizes, e.g., `[32, 16]`
 - `max_iter`: Maximum iterations
 - `early_stopping`: Stop when validation plateaus
+- `n_iter_no_change`: Patience - epochs to wait without improvement (default: 10)
+- `validation_fraction`: Fraction of training data for validation
 - `alpha`: L2 regularization
 - `learning_rate_init`: Initial learning rate
 

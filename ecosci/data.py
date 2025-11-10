@@ -56,7 +56,7 @@ class CSVDataLoader:
         """
         from sklearn.model_selection import train_test_split
         from sklearn.impute import SimpleImputer
-        from sklearn.preprocessing import StandardScaler, MinMaxScaler, OneHotEncoder
+        from sklearn.preprocessing import StandardScaler, MinMaxScaler, OneHotEncoder, LabelEncoder
         from sklearn.compose import ColumnTransformer
         from sklearn.pipeline import Pipeline
         import numpy as np
@@ -72,6 +72,17 @@ class CSVDataLoader:
 
         X = df[self.features].copy()
         y = df[self.label].copy()
+        
+        # Encode labels if they are strings/categorical (needed for XGBoost and others)
+        if y.dtype == 'object' or y.dtype.name == 'category':
+            label_encoder = LabelEncoder()
+            y = label_encoder.fit_transform(y)
+            # Store the encoder for later use if needed
+            self.label_encoder = label_encoder
+            self.label_classes = label_encoder.classes_
+        else:
+            self.label_encoder = None
+            self.label_classes = None
 
         # Identify numeric vs categorical (strings, categories, etc.)
         numeric_cols = X.select_dtypes(include=["number"]).columns.tolist()
@@ -96,10 +107,14 @@ class CSVDataLoader:
         preprocessor = ColumnTransformer(transformers, remainder="drop")
 
         X_proc = preprocessor.fit_transform(X)
+        
+        # Check number of unique classes for stratification
+        n_unique = len(np.unique(y))
+        stratify_y = y if n_unique <= 20 else None
 
         # Split: first test, then validation from remaining
         X_train_val, X_test, y_train_val, y_test = train_test_split(
-            X_proc, y, test_size=self.test_size, random_state=self.random_state, stratify=y if y.nunique() <= 20 else None
+            X_proc, y, test_size=self.test_size, random_state=self.random_state, stratify=stratify_y
         )
 
         # compute val fraction relative to train_val
@@ -107,9 +122,11 @@ class CSVDataLoader:
             X_train, X_val, y_train, y_val = X_train_val, None, y_train_val, None
         else:
             val_fraction = self.val_size / (1.0 - self.test_size)
+            n_unique_train = len(np.unique(y_train_val))
+            stratify_train = y_train_val if n_unique_train <= 20 else None
             X_train, X_val, y_train, y_val = train_test_split(
                 X_train_val, y_train_val, test_size=val_fraction, random_state=self.random_state,
-                stratify=y_train_val if y_train_val.nunique() <= 20 else None
+                stratify=stratify_train
             )
 
         return X_train, X_val, X_test, np.array(y_train), (None if y_val is None else np.array(y_val)), np.array(y_test)

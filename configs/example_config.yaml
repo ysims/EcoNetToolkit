@@ -15,14 +15,16 @@ models:
   # MLP (Multi-Layer Perceptron) - Shallow neural network
   - name: mlp
     params:
-      hidden_layer_sizes: [32, 16]   # List of hidden layer sizes, e.g., [32,16] = 2 layers
-      max_iter: 300                   # Maximum training iterations
+      hidden_layer_sizes: [128, 64]   # The model architecture - wide and shallow is usually best
+      max_iter: 2000                  # High iterations for convergence
       early_stopping: true            # Stop when validation performance plateaus
       validation_fraction: 0.1        # Fraction of training data for validation
-      alpha: 0.0001                   # L2 regularization term
+      n_iter_no_change: 30            # Avoid premature stopping
+      alpha: 0.0001                   # L2 regularization term (lighter regularization)
       learning_rate_init: 0.001       # Initial learning rate (for adam solver)
-      # activation: relu              # relu|tanh|logistic
-      # solver: adam                  # adam|sgd|lbfgs
+      activation: relu                # relu|tanh|logistic
+      solver: adam                    # adam|sgd|lbfgs
+      learning_rate: adaptive         # adaptive|constant|invscaling (adjust LR during training)
   
   # Random Forest - Tree ensemble
   - name: random_forest
