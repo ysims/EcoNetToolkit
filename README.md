@@ -47,11 +47,17 @@ If the `conda` command isn’t recognised, make sure you’re in the Anaconda Pr
     ```
 
     Outputs are written to `outputs/` by default:
-    - `report.json`: per-seed metrics in JSON format (accuracy, balanced_accuracy, precision, recall, f1, cohen_kappa, roc_auc, average_precision, confusion_matrix)
-    - `metric_*.png`: boxplots showing distribution of metrics across seeds (accuracy, balanced_accuracy, f1, cohen_kappa)
-    - `confusion_matrix.png`: confusion matrix heatmap (last run)
-    - `pr_curve.png`: precision-recall curve (binary classification with probabilities)
-    - `model_<name>_seed<N>.joblib`: trained scikit-learn models saved per seed (can be loaded with `joblib.load()` for predictions)
+    
+    **Single model outputs:**
+    - `report_<model>.json`: per-seed metrics for each model
+    - `confusion_matrix_<model>.png`: confusion matrix for each model
+    - `pr_curve_<model>.png`: precision-recall curve for each model
+    - `model_<name>_seed<N>.joblib`: trained models saved per seed
+    
+    **Multi-model comparison outputs:**
+    - `report_all_models.json`: combined metrics across all models
+    - `comparison_*.png`: side-by-side boxplots comparing models (accuracy, f1, etc.)
+    - `pr_curve_comparison.png`: overlaid precision-recall curves for all models
 
 3. Inspect saved models (optional):
 
@@ -69,34 +75,92 @@ If the `conda` command isn’t recognised, make sure you’re in the Anaconda Pr
 
 ## Config reference (YAML)
 
+You can train **single or multiple models** for comparison. See `configs/example_config.yaml` for comprehensive examples of all model types and their parameters.
+
+### Simple example (single model)
+
 ```yaml
-problem_type: classification  # or regression
+problem_type: classification
 
 data:
-    path: data/sample.csv       # location of your CSV file
-    features: [f1, f2, habitat] # list of input columns in your CSV
-    label: label                # the column to predict
-    test_size: 0.2              # fraction held out for final testing
-    val_size: 0.2               # fraction of remaining data used as validation
-    random_state: 0             # controls the train/val/test split
-    scaling: standard           # standard|minmax
-    impute_strategy: mean       # mean|median|most_frequent
+    path: data/sample.csv
+    features: [f1, f2, habitat]
+    label: label
+    test_size: 0.2
+    val_size: 0.2
+    random_state: 0
+    scaling: standard
+    impute_strategy: mean
 
-model:
-    name: mlp                   # mlp|random_forest|svm|xgboost|logistic
+models:
+  - name: mlp
     params:
-        hidden_layer_sizes: [32]  # only for mlp; a shallow single hidden layer
-        max_iter: 300             # training iterations for mlp
-        early_stopping: true      # let sklearn stop when val score stops improving
-        validation_fraction: 0.1  # fraction inside the mlp used for early stopping
+      hidden_layer_sizes: [32, 16]
+      max_iter: 300
+      early_stopping: true
 
 training:
-    repetitions: 3              # if seeds not provided, run base_seed..+n-1
-    random_seed: 0              # base seed (for splits and models)
-    # seeds: [1, 2, 3]         # optional explicit seeds list overrides repetitions
+    repetitions: 5
+    random_seed: 0
 
 output_dir: outputs
 ```
+
+### Multi-model comparison example
+
+Train and compare multiple models at once (see `configs/multi_model_config.yaml`):
+
+```yaml
+models:
+  - name: logistic
+    params:
+      C: 1.0
+      max_iter: 1000
+  
+  - name: random_forest
+    params:
+      n_estimators: 100
+      max_depth: null
+  
+  - name: mlp
+    params:
+      hidden_layer_sizes: [32, 16]
+      max_iter: 300
+      early_stopping: true
+```
+
+### Available models and key parameters
+
+**MLP (Multi-Layer Perceptron)**
+- `hidden_layer_sizes`: List of layer sizes, e.g., `[32, 16]`
+- `max_iter`: Maximum iterations
+- `early_stopping`: Stop when validation plateaus
+- `alpha`: L2 regularization
+- `learning_rate_init`: Initial learning rate
+
+**Random Forest**
+- `n_estimators`: Number of trees
+- `max_depth`: Max tree depth (`null` = unlimited)
+- `min_samples_split`: Min samples to split
+- `max_features`: Features per split (`sqrt`, `log2`, or `null`)
+
+**SVM (Support Vector Machine)**
+- `C`: Regularization parameter
+- `kernel`: `rbf`, `linear`, `poly`, or `sigmoid`
+- `gamma`: Kernel coefficient (`scale` or `auto`)
+
+**XGBoost**
+- `n_estimators`: Boosting rounds
+- `max_depth`: Max tree depth
+- `learning_rate`: Step size (eta)
+- `subsample`: Training instance ratio
+- `colsample_bytree`: Feature ratio
+
+**Logistic Regression**
+- `C`: Inverse regularization strength
+- `max_iter`: Max solver iterations
+- `solver`: `lbfgs`, `liblinear`, `newton-cg`, etc.
+- `penalty`: `l1`, `l2`, `elasticnet`, or `null`
 
 Notes
 - For classification with two classes, we compute ROC-AUC and PR AUC if the

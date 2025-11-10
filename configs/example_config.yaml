@@ -10,13 +10,59 @@ data:
   scaling: standard            # standard|minmax (how to scale numeric columns)
   impute_strategy: mean        # mean|median|most_frequent (for missing values)
 
-model:
-  name: mlp                    # mlp|random_forest|svm|xgboost|logistic
-  params:
-    hidden_layer_sizes: [32, 16]   # for mlp: one hidden layer of size 32
-    max_iter: 300              # training iterations
-    early_stopping: true       # stop when validation stops improving (mlp)
-    validation_fraction: 0.1   # fraction used for early stopping inside mlp
+# You can specify a single model or multiple models to compare
+models:
+  # MLP (Multi-Layer Perceptron) - Shallow neural network
+  - name: mlp
+    params:
+      hidden_layer_sizes: [32, 16]   # List of hidden layer sizes, e.g., [32,16] = 2 layers
+      max_iter: 300                   # Maximum training iterations
+      early_stopping: true            # Stop when validation performance plateaus
+      validation_fraction: 0.1        # Fraction of training data for validation
+      alpha: 0.0001                   # L2 regularization term
+      learning_rate_init: 0.001       # Initial learning rate (for adam solver)
+      # activation: relu              # relu|tanh|logistic
+      # solver: adam                  # adam|sgd|lbfgs
+  
+  # Random Forest - Tree ensemble
+  - name: random_forest
+    params:
+      n_estimators: 100               # Number of trees in the forest
+      max_depth: null                 # Max tree depth (null = unlimited)
+      min_samples_split: 2            # Min samples to split an internal node
+      min_samples_leaf: 1             # Min samples at a leaf node
+      max_features: sqrt              # sqrt|log2|null (features per split)
+      # class_weight: balanced        # balanced|null (for imbalanced data)
+  
+  # SVM (Support Vector Machine)
+  - name: svm
+    params:
+      C: 1.0                          # Regularization parameter (smaller = more regularization)
+      kernel: rbf                     # rbf|linear|poly|sigmoid
+      gamma: scale                    # scale|auto (kernel coefficient)
+      # degree: 3                     # Only for poly kernel
+      # class_weight: balanced        # balanced|null (for imbalanced data)
+  
+  # XGBoost - Gradient boosting
+  - name: xgboost
+    params:
+      n_estimators: 100               # Number of boosting rounds
+      max_depth: 6                    # Max tree depth
+      learning_rate: 0.3              # Step size shrinkage (eta)
+      subsample: 1.0                  # Subsample ratio of training instances
+      colsample_bytree: 1.0           # Subsample ratio of features
+      reg_alpha: 0                    # L1 regularization
+      reg_lambda: 1                   # L2 regularization
+      # scale_pos_weight: 1           # For imbalanced classes
+  
+  # Logistic Regression - Simple, interpretable baseline
+  - name: logistic
+    params:
+      C: 1.0                          # Inverse regularization strength
+      max_iter: 1000                  # Max iterations for solver
+      solver: lbfgs                   # lbfgs|liblinear|newton-cg|sag|saga
+      penalty: l2                     # l1|l2|elasticnet|null
+      # class_weight: balanced        # balanced|null (for imbalanced data)
 
 training:
   repetitions: 10               # number of runs if seeds not provided

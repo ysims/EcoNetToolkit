@@ -27,6 +27,15 @@ def load_config(path: str) -> Dict[str, Any]:
     """
     with open(path, "r") as f:
         cfg = yaml.safe_load(f)
+    
+    # Ensure models key exists
+    if "models" not in cfg:
+        raise ValueError("Config must contain 'models' key with a list of model configurations")
+    
+    # Ensure models is a list
+    if not isinstance(cfg["models"], list):
+        cfg["models"] = [cfg["models"]]
+    
     return cfg
 
 

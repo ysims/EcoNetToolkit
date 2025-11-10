@@ -1,13 +1,13 @@
 """Model zoo: quick access to common models with a unified interface.
 
-Supported model names (set in YAML under `model.name`):
+Supported model names (set in YAML under `models[].name`):
 - mlp          : shallow neural network (1 hidden layer by default)
 - random_forest: tree ensemble, good baseline
 - svm          : support vector machine (classification or regression)
 - xgboost      : gradient boosting trees (requires `xgboost` package)
 - logistic     : logistic regression (classification baseline)
 
-All model hyperparameters come from `model.params` in the YAML and are passed
+All model hyperparameters come from `models[].params` in the YAML and are passed
 through to the underlying scikit-learn/xgboost classes. This keeps the code
 short and the config flexible.
 """
