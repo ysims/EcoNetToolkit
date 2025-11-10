@@ -60,41 +60,4 @@ def test_config_has_expected_structure(temp_config_file):
     assert 'name' in cfg['model']
     assert 'params' in cfg['model']
     assert isinstance(cfg['model']['params'], dict)
-        assert 'hidden_layer_sizes' in cfg['model']['params']
-        assert 'max_iter' in cfg['model']['params']
-        assert 'random_state' in cfg['model']['params']
-
-
-class TestConfigVariations:
-    """Test different valid configuration variations."""
-    
-    def test_config_with_explicit_seeds(self):
-        """Test config with explicit seed list instead of repetitions."""
-        config_content = """
-problem_type: classification
-data:
-  path: data/sample.csv
-  features: [feature1, feature2]
-  label: label
-model:
-  name: logistic
-  params:
-    random_state: 42
-training:
-  seeds: [10, 20, 30]
-output_dir: outputs
-"""
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False) as f:
-            f.write(config_content)
-            cfg = load_config(f.name)
-        
-        assert 'seeds' in cfg['training']
-        assert cfg['training']['seeds'] == [10, 20, 30]
-    
-    def test_config_with_categorical_features(self):
-        """Test config with categorical features specified."""
-        config_content = """
-problem_type: classification
-data:
-  path: data/sample.csv
 

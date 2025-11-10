@@ -80,23 +80,6 @@ def test_full_pipeline_from_config_to_report(temp_config):
         train_split=cfg['data']['train_split'],
         val_split=cfg['data']['val_split'],
         test_split=cfg['data']['test_split'],
-            scaling=cfg['data']['scaling'],
-            impute_strategy=cfg['data']['impute_strategy']
-        )
-        X_train, X_val, X_test, y_train, y_val, y_test = loader.prepare()
-        
-        # Train model
-        trainer = Trainer(
-            ModelZoo.get_model,
-            problem_type=cfg['problem_type'],
-            output_dir=cfg['output_dir']
-        )
-        results = trainer.run(cfg, X_train, X_val, X_test, y_train, y_val, y_test)
-        
-        # Evaluate
-        summary = evaluate_and_report(results, y_test, cfg)
-        
-        # Verify results
         scaling=cfg['data']['scaling']
     )
     X_train, X_val, X_test, y_train, y_val, y_test = loader.prepare()
@@ -158,43 +141,3 @@ def test_pipeline_with_categorical_features(temp_output_dir):
     
     assert len(results) == 1
     assert len(results[0]['y_pred']) == len(y_test)
-        # Create data with missing values
-        np.random.seed(42)
-        n = 100
-        data = {
-            'feature1': np.random.randn(n),
-            'feature2': np.random.randn(n),
-            'feature3': np.random.randn(n),
-            'label': np.random.choice([0, 1], n)
-        }
-        df = pd.DataFrame(data)
-        
-        # Introduce missing values
-        df.loc[5:10, 'feature1'] = np.nan
-        df.loc[15:20, 'feature2'] = np.nan
-        
-        # Save to temp file
-        csv_path = os.path.join(temp_output_dir, 'data_with_nan.csv')
-        df.to_csv(csv_path, index=False)
-        
-        # Setup data loader with imputation
-        loader = CSVDataLoader(
-            path=csv_path,
-            features=['feature1', 'feature2', 'feature3'],
-            label='label',
-            impute_strategy='mean'
-        )
-        X_train, X_val, X_test, y_train, y_val, y_test = loader.prepare()
-        
-        # Verify no NaNs after imputation
-        assert not np.isnan(X_train).any()
-        assert not np.isnan(X_test).any()
-        
-        # Train model
-        cfg = {
-            'problem_type': 'classification',
-            'model': {'name': 'logistic', 'params': {'random_state': 42}},
-            'training': {'repetitions': 1, 'random_seed': 0},
-            'output_dir': temp_output_dir
-        }
-

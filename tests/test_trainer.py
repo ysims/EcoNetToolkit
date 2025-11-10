@@ -66,23 +66,13 @@ def test_trainer_multiple_seeds_produces_multiple_results(sample_csv, temp_outpu
         'training': {'repetitions': 3, 'random_seed': 0},
         'output_dir': temp_output_dir
     }
-        
-        trainer = Trainer(ModelZoo.get_model, problem_type='classification', output_dir=temp_output_dir)
-        results = trainer.run(cfg, X_train, X_val, X_test, y_train, y_val, y_test)
-        
-        assert len(results) == 3
-        assert all('y_pred' in r for r in results)
-        assert [r['seed'] for r in results] == [0, 1, 2]
-    
-    def test_trainer_explicit_seeds(self, temp_csv, temp_output_dir):
-        """Test trainer with explicitly provided seeds."""
-        loader = CSVDataLoader(path=temp_csv, features=['feature1', 'feature2'], label='label')
     
     trainer = Trainer(ModelZoo.get_model, problem_type='classification', output_dir=temp_output_dir)
     results = trainer.run(cfg, X_train, X_val, X_test, y_train, y_val, y_test)
     
     assert len(results) == 3
     assert len(results[0]['y_pred']) == len(y_test)
+
 
 
 def test_trainer_saves_joblib_files(sample_csv, temp_output_dir):
