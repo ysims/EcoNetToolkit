@@ -1,0 +1,82 @@
+# This dataset is from https://www.kaggle.com/datasets/samybaladram/palmers-penguin-dataset-extended
+
+problem_type: classification   # Predicting penguin species
+
+data:
+  path: data/palmerpenguins_extended.csv
+  
+  # Features: Physical measurements and contextual variables
+  features: 
+    - bill_length_mm       # Continuous: length of bill in millimeters
+    - bill_depth_mm        # Continuous: depth of bill in millimeters
+    - flipper_length_mm    # Continuous: flipper length in millimeters
+    - body_mass_g          # Continuous: body mass in grams
+    - island               # Categorical: Biscoe, Dream, Torgensen
+    - sex                  # Categorical: male, female
+    - diet                 # Categorical: fish, krill, squid, parental
+    - life_stage           # Categorical: adult, juvenile, chick
+    - year                 # Numeric: 2021-2025
+  
+  # Target variable - options:
+  # - species: Adelie, Chinstrap, Gentoo (3-class classification)
+  # - health_metrics: healthy, overweight, underweight (3-class)
+  # - sex: male, female (binary classification)
+  # - life_stage: adult, juvenile, chick (3-class)
+  label: species
+  
+  test_size: 0.2           # 20% for testing (686 samples)
+  val_size: 0.15           # 15% of remaining for validation
+  random_state: 42         # For reproducibility
+  scaling: standard        # Standardize features (important for MLP/SVM)
+  impute_strategy: mean    # No missing values in this dataset, but good practice
+
+# Train multiple models for comparison
+models:
+  # Random Forest - typically best for tabular ecological data
+  - name: random_forest
+    params:
+      n_estimators: 200      # More trees for better performance
+      max_depth: 20          # Limit depth to avoid overfitting
+      min_samples_split: 5   # Conservative splitting
+      min_samples_leaf: 2    # Minimum samples at leaf nodes
+      max_features: sqrt     # Use sqrt of features per split
+      class_weight: balanced # Handle any class imbalance
+  
+  # XGBoost - gradient boosting, often excellent for structured data
+  - name: xgboost
+    params:
+      n_estimators: 200
+      max_depth: 6
+      learning_rate: 0.1
+      subsample: 0.8
+      colsample_bytree: 0.8
+      reg_alpha: 0.1         # L1 regularization
+      reg_lambda: 1.0        # L2 regularization
+  
+  # Logistic Regression - simple interpretable baseline
+  - name: logistic
+    params:
+      C: 1.0
+      max_iter: 1000
+      solver: lbfgs
+      class_weight: balanced
+  
+  # MLP - neural network
+  - name: mlp
+    params:
+      hidden_layer_sizes: [128, 64]  # Two hidden layers
+      max_iter: 2000
+      early_stopping: true
+      validation_fraction: 0.1
+      n_iter_no_change: 50
+      alpha: 0.001
+      learning_rate_init: 0.001
+      activation: relu
+      solver: adam
+      learning_rate: adaptive
+
+training:
+  repetitions: 10          # Train 10 times with different random seeds
+  random_seed: 42         # Base seed for reproducibility
+
+output_dir: outputs/penguins  # Save results to penguins subdirectory

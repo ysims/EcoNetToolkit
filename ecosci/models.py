@@ -77,7 +77,11 @@ class ModelZoo:
                 raise ImportError("xgboost is required for the xgboost model: install via pip install xgboost")
 
             if problem_type == "classification":
-                return XGBClassifier(use_label_encoder=False, eval_metric=params.get("eval_metric", "logloss"), **params)
+                # use_label_encoder is deprecated and no longer needed
+                # Labels are already encoded by the data loader
+                eval_metric = params.get("eval_metric", "logloss")
+                params_filtered = {k: v for k, v in params.items() if k != "eval_metric"}
+                return XGBClassifier(eval_metric=eval_metric, **params_filtered)
             else:
                 return XGBRegressor(**params)
 
