@@ -87,8 +87,11 @@ class Trainer:
             if hasattr(model, "predict_proba"):
                 try:
                     y_proba = model.predict_proba(X_test)
-                except Exception:
+                except Exception as e:
+                    print(f"  Warning: predict_proba failed: {e}")
                     y_proba = None
+            else:
+                print(f"  Model {mname} does not support predict_proba")
 
             # save model for this run
             fname = os.path.join(self.output_dir, f"model_{mname}_seed{s}.joblib")
