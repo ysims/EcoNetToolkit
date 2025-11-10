@@ -111,6 +111,27 @@ Notes
 - If your dataset is very imbalanced, consider `class_weight: balanced` in `model.params`
 	for `logistic` or `svm`, or tune `scale_pos_weight` for `xgboost`.
 
+## Testing
+
+Run the test suite to ensure everything works correctly:
+
+```bash
+pytest tests/test_ecosci.py -v
+```
+
+Or run with coverage:
+
+```bash
+pytest tests/test_ecosci.py -v --cov=ecosci --cov-report=html
+```
+
+The tests verify:
+- Data loading and preprocessing (scaling, encoding, splits)
+- Model instantiation and training for all model types
+- Metric computation produces sane values (0-1 ranges, no NaN/inf)
+- Full end-to-end pipeline runs without errors
+- Models produce reasonable accuracy (better than random)
+
 ## Troubleshooting
 
 - ImportError for xgboost: install it with `pip install xgboost` or switch to another model.
