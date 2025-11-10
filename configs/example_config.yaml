@@ -13,7 +13,7 @@ data:
 model:
   name: mlp                    # mlp|random_forest|svm|xgboost|logistic
   params:
-    hidden_layer_sizes: [32]   # for mlp: one hidden layer of size 32
+    hidden_layer_sizes: [32, 16]   # for mlp: one hidden layer of size 32
     max_iter: 300              # training iterations
     early_stopping: true       # stop when validation stops improving (mlp)
     validation_fraction: 0.1   # fraction used for early stopping inside mlp
