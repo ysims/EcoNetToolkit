@@ -19,7 +19,7 @@ model:
     validation_fraction: 0.1   # fraction used for early stopping inside mlp
 
 training:
-  repetitions: 3               # number of runs if seeds not provided
+  repetitions: 10               # number of runs if seeds not provided
   random_seed: 0               # base seed; runs are 0,1,2
   # seeds: [1, 2, 3]          # optionally specify exact seeds (overrides repetitions)
 
