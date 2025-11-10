@@ -1,0 +1,200 @@
+"""Integration tests for the full pipeline."""
+import pytest
+import numpy as np
+import pandas as pd
+import tempfile
+import os
+import shutil
+import json
+
+from ecosci.config import load_config
+from ecosci.data import CSVDataLoader
+from ecosci.models import ModelZoo
+from ecosci.trainer import Trainer
+from ecosci.eval import evaluate_and_report
+
+
+@pytest.fixture
+def sample_csv():
+    """Create a temporary CSV file."""
+    np.random.seed(42)
+    n = 50
+    data = {
+        'num1': np.random.randn(n),
+        'num2': np.random.randn(n) + 1,
+        'label': np.random.choice([0, 1], n)
+    }
+    df = pd.DataFrame(data)
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.csv', delete=False) as f:
+        df.to_csv(f, index=False)
+        return f.name
+
+
+@pytest.fixture
+def temp_output_dir():
+    """Create a temporary output directory."""
+    tmpdir = tempfile.mkdtemp()
+    yield tmpdir
+    shutil.rmtree(tmpdir, ignore_errors=True)
+
+
+@pytest.fixture
+def temp_config(sample_csv, temp_output_dir):
+    """Create a temporary config file."""
+    config = f"""
+problem_type: classification
+
+data:
+  path: {sample_csv}
+  features: [num1, num2]
+  label: label
+  train_split: 0.7
+  val_split: 0.15
+  test_split: 0.15
+  scaling: standard
+
+model:
+  name: logistic
+  params:
+    random_state: 42
+
+training:
+  repetitions: 2
+  random_seed: 0
+
+output_dir: {temp_output_dir}
+"""
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False) as f:
+        f.write(config)
+        return f.name
+
+
+def test_full_pipeline_from_config_to_report(temp_config):
+    """Test complete pipeline: load config → load data → train → evaluate."""
+    cfg = load_config(temp_config)
+    
+    loader = CSVDataLoader(
+        path=cfg['data']['path'],
+        features=cfg['data']['features'],
+        label=cfg['data']['label'],
+        train_split=cfg['data']['train_split'],
+        val_split=cfg['data']['val_split'],
+        test_split=cfg['data']['test_split'],
+            scaling=cfg['data']['scaling'],
+            impute_strategy=cfg['data']['impute_strategy']
+        )
+        X_train, X_val, X_test, y_train, y_val, y_test = loader.prepare()
+        
+        # Train model
+        trainer = Trainer(
+            ModelZoo.get_model,
+            problem_type=cfg['problem_type'],
+            output_dir=cfg['output_dir']
+        )
+        results = trainer.run(cfg, X_train, X_val, X_test, y_train, y_val, y_test)
+        
+        # Evaluate
+        summary = evaluate_and_report(results, y_test, cfg)
+        
+        # Verify results
+        scaling=cfg['data']['scaling']
+    )
+    X_train, X_val, X_test, y_train, y_val, y_test = loader.prepare()
+    
+    trainer = Trainer(
+        ModelZoo.get_model,
+        problem_type=cfg['problem_type'],
+        output_dir=cfg['output_dir']
+    )
+    results = trainer.run(cfg, X_train, X_val, X_test, y_train, y_val, y_test)
+    
+    summary = evaluate_and_report(results, y_test, cfg)
+    
+    # Check that we got results
+    assert len(results) == cfg['training']['repetitions']
+    assert 'metrics' in summary
+    assert os.path.exists(os.path.join(cfg['output_dir'], 'report.json'))
+    
+    # Verify report.json is valid
+    with open(os.path.join(cfg['output_dir'], 'report.json'), 'r') as f:
+        report = json.load(f)
+        assert 'metrics' in report
+
+
+def test_pipeline_with_categorical_features(temp_output_dir):
+    """Test pipeline with categorical data."""
+    np.random.seed(42)
+    n = 50
+    data = {
+        'num1': np.random.randn(n),
+        'cat': np.random.choice(['A', 'B', 'C'], n),
+        'label': np.random.choice([0, 1], n)
+    }
+    df = pd.DataFrame(data)
+    csv_path = os.path.join(temp_output_dir, 'cat_data.csv')
+    df.to_csv(csv_path, index=False)
+    
+    loader = CSVDataLoader(
+        path=csv_path,
+        features=['num1', 'cat'],
+        label='label',
+        categorical_features=['cat']
+    )
+    X_train, X_val, X_test, y_train, y_val, y_test = loader.prepare()
+    
+    cfg = {
+        'problem_type': 'classification',
+        'model': {'name': 'random_forest', 'params': {'n_estimators': 10, 'random_state': 42}},
+        'training': {'repetitions': 1, 'random_seed': 0},
+        'output_dir': temp_output_dir
+    }
+    
+    trainer = Trainer(
+        ModelZoo.get_model,
+        problem_type='classification',
+        output_dir=temp_output_dir
+    )
+    results = trainer.run(cfg, X_train, X_val, X_test, y_train, y_val, y_test)
+    
+    assert len(results) == 1
+    assert len(results[0]['y_pred']) == len(y_test)
+        # Create data with missing values
+        np.random.seed(42)
+        n = 100
+        data = {
+            'feature1': np.random.randn(n),
+            'feature2': np.random.randn(n),
+            'feature3': np.random.randn(n),
+            'label': np.random.choice([0, 1], n)
+        }
+        df = pd.DataFrame(data)
+        
+        # Introduce missing values
+        df.loc[5:10, 'feature1'] = np.nan
+        df.loc[15:20, 'feature2'] = np.nan
+        
+        # Save to temp file
+        csv_path = os.path.join(temp_output_dir, 'data_with_nan.csv')
+        df.to_csv(csv_path, index=False)
+        
+        # Setup data loader with imputation
+        loader = CSVDataLoader(
+            path=csv_path,
+            features=['feature1', 'feature2', 'feature3'],
+            label='label',
+            impute_strategy='mean'
+        )
+        X_train, X_val, X_test, y_train, y_val, y_test = loader.prepare()
+        
+        # Verify no NaNs after imputation
+        assert not np.isnan(X_train).any()
+        assert not np.isnan(X_test).any()
+        
+        # Train model
+        cfg = {
+            'problem_type': 'classification',
+            'model': {'name': 'logistic', 'params': {'random_state': 42}},
+            'training': {'repetitions': 1, 'random_seed': 0},
+            'output_dir': temp_output_dir
+        }
+
