@@ -43,7 +43,7 @@ If the `conda` command isn’t recognised, make sure you’re in the Anaconda Pr
 2. Run:
 
     ```bash
-    python scripts/run.py --config configs/example_config.yaml
+    python run.py --config configs/example_config.yaml
     ```
 
     Outputs are written to `outputs/` by default:
@@ -105,12 +105,12 @@ Notes
 
 ## Development layout
 
-- `ecosci/` package with modules:
+- `run.py` — simple entrypoint script
+- `ecosci/` — package with modules:
 	- `config.py` (YAML reader)
 	- `data.py` (CSV loader + preprocessing)
 	- `models.py` (ModelZoo)
 	- `trainer.py` (seeded training loop, saving models)
 	- `eval.py` (metrics and plots)
-- `scripts/run.py` CLI entry point
-- `configs/` example configuration
-- `data/` sample CSV for quick testing
+- `configs/` — example configuration
+- `data/` — sample CSV for quick testing
