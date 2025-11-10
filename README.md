@@ -10,7 +10,7 @@ EcoNetToolkit lets you train a shallow neural network or classical models on you
 
 ## Setup
 
-### MacOS: Create and activate a virtual environment
+### macOS and Linux: Create and activate a virtual environment
 
 In your terminal, run:
 
@@ -59,27 +59,27 @@ If the `conda` command isn’t recognised, make sure you’re in the Anaconda Pr
 problem_type: classification  # or regression
 
 data:
-	path: data/sample.csv       # location of your CSV file
-	features: [f1, f2, habitat] # list of input columns in your CSV
-	label: label                # the column to predict
-	test_size: 0.2              # fraction held out for final testing
-	val_size: 0.2               # fraction of remaining data used as validation
-	random_state: 0             # controls the train/val/test split
-	scaling: standard           # standard|minmax
-	impute_strategy: mean       # mean|median|most_frequent
+    path: data/sample.csv       # location of your CSV file
+    features: [f1, f2, habitat] # list of input columns in your CSV
+    label: label                # the column to predict
+    test_size: 0.2              # fraction held out for final testing
+    val_size: 0.2               # fraction of remaining data used as validation
+    random_state: 0             # controls the train/val/test split
+    scaling: standard           # standard|minmax
+    impute_strategy: mean       # mean|median|most_frequent
 
 model:
-	name: mlp                   # mlp|random_forest|svm|xgboost|logistic
-	params:
-		hidden_layer_sizes: [32]  # only for mlp; a shallow single hidden layer
-		max_iter: 300             # training iterations for mlp
-		early_stopping: true      # let sklearn stop when val score stops improving
-		validation_fraction: 0.1  # fraction inside the mlp used for early stopping
+    name: mlp                   # mlp|random_forest|svm|xgboost|logistic
+    params:
+        hidden_layer_sizes: [32]  # only for mlp; a shallow single hidden layer
+        max_iter: 300             # training iterations for mlp
+        early_stopping: true      # let sklearn stop when val score stops improving
+        validation_fraction: 0.1  # fraction inside the mlp used for early stopping
 
 training:
-	repetitions: 3              # if seeds not provided, run base_seed..+n-1
-	random_seed: 0              # base seed (for splits and models)
-	# seeds: [1, 2, 3]         # optional explicit seeds list overrides repetitions
+    repetitions: 3              # if seeds not provided, run base_seed..+n-1
+    random_seed: 0              # base seed (for splits and models)
+    # seeds: [1, 2, 3]         # optional explicit seeds list overrides repetitions
 
 output_dir: outputs
 ```
