@@ -77,9 +77,8 @@ def test_full_pipeline_from_config_to_report(temp_config):
         path=cfg['data']['path'],
         features=cfg['data']['features'],
         label=cfg['data']['label'],
-        train_split=cfg['data']['train_split'],
-        val_split=cfg['data']['val_split'],
-        test_split=cfg['data']['test_split'],
+        test_size=cfg['data']['test_split'],
+        val_size=cfg['data']['val_split'],
         scaling=cfg['data']['scaling']
     )
     X_train, X_val, X_test, y_train, y_val, y_test = loader.prepare()
@@ -91,17 +90,19 @@ def test_full_pipeline_from_config_to_report(temp_config):
     )
     results = trainer.run(cfg, X_train, X_val, X_test, y_train, y_val, y_test)
     
-    summary = evaluate_and_report(results, y_test, cfg)
+    summary = evaluate_and_report(results, y_test, cfg['output_dir'])
     
     # Check that we got results
     assert len(results) == cfg['training']['repetitions']
-    assert 'metrics' in summary
+    assert isinstance(summary, list)
+    assert len(summary) == cfg['training']['repetitions']
     assert os.path.exists(os.path.join(cfg['output_dir'], 'report.json'))
     
     # Verify report.json is valid
     with open(os.path.join(cfg['output_dir'], 'report.json'), 'r') as f:
         report = json.load(f)
-        assert 'metrics' in report
+        assert isinstance(report, list)
+        assert len(report) > 0
 
 
 def test_pipeline_with_categorical_features(temp_output_dir):
@@ -117,11 +118,11 @@ def test_pipeline_with_categorical_features(temp_output_dir):
     csv_path = os.path.join(temp_output_dir, 'cat_data.csv')
     df.to_csv(csv_path, index=False)
     
+    # CSVDataLoader auto-detects categorical columns (non-numeric)
     loader = CSVDataLoader(
         path=csv_path,
         features=['num1', 'cat'],
-        label='label',
-        categorical_features=['cat']
+        label='label'
     )
     X_train, X_val, X_test, y_train, y_val, y_test = loader.prepare()
     

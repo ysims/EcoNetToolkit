@@ -71,20 +71,19 @@ def test_evaluate_and_report_creates_json(temp_output_dir):
         }
     ]
     
-    cfg = {
-        'output_dir': temp_output_dir,
-        'model': {'name': 'test_model'}
-    }
+    summary = evaluate_and_report(results, y_true, temp_output_dir)
     
-    summary = evaluate_and_report(results, y_true, cfg)
-    
-    assert 'metrics' in summary
+    # summary is a list of metric dicts
+    assert isinstance(summary, list)
+    assert len(summary) > 0
+    assert 'accuracy' in summary[0]
     assert os.path.exists(os.path.join(temp_output_dir, 'report.json'))
     
     # Check JSON is valid
     with open(os.path.join(temp_output_dir, 'report.json'), 'r') as f:
         report_data = json.load(f)
-        assert 'metrics' in report_data
+        assert isinstance(report_data, list)
+        assert len(report_data) > 0
 
 
 def test_evaluate_and_report_multiple_seeds_computes_stats(temp_output_dir):
@@ -101,13 +100,10 @@ def test_evaluate_and_report_multiple_seeds_computes_stats(temp_output_dir):
             'y_proba': None
         })
     
-    cfg = {
-        'output_dir': temp_output_dir,
-        'model': {'name': 'test_model'}
-    }
+    summary = evaluate_and_report(results, y_true, temp_output_dir)
     
-    summary = evaluate_and_report(results, y_true, cfg)
-    
-    # Should have mean and std for metrics
-    assert 'accuracy_mean' in summary['metrics'] or 'accuracy' in summary['metrics']
+    # summary is a list of metric dicts, one per seed
+    assert isinstance(summary, list)
+    assert len(summary) == 3
+    assert all('accuracy' in m for m in summary)
     assert os.path.exists(os.path.join(temp_output_dir, 'report.json'))

@@ -50,15 +50,18 @@ class ModelZoo:
             from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 
             if problem_type == "classification":
-                return RandomForestClassifier(random_state=params.get("random_state", 0), **{k: v for k, v in params.items()})
+                return RandomForestClassifier(random_state=params.get("random_state", 0), 
+                                             **{k: v for k, v in params.items() if k != "random_state"})
             else:
-                return RandomForestRegressor(random_state=params.get("random_state", 0), **{k: v for k, v in params.items()})
+                return RandomForestRegressor(random_state=params.get("random_state", 0), 
+                                            **{k: v for k, v in params.items() if k != "random_state"})
 
         if name.lower() == "svm":
             from sklearn.svm import SVC, SVR
 
             if problem_type == "classification":
-                return SVC(probability=True, random_state=params.get("random_state", 0), **{k: v for k, v in params.items()})
+                return SVC(probability=True, random_state=params.get("random_state", 0), 
+                          **{k: v for k, v in params.items() if k != "random_state"})
             else:
                 return SVR(**{k: v for k, v in params.items()})
 
@@ -76,6 +79,8 @@ class ModelZoo:
         if name.lower() == "logistic":
             from sklearn.linear_model import LogisticRegression
 
-            return LogisticRegression(random_state=params.get("random_state", 0), max_iter=params.get("max_iter", 1000), **{k: v for k, v in params.items()})
+            return LogisticRegression(random_state=params.get("random_state", 0), 
+                                    max_iter=params.get("max_iter", 1000), 
+                                    **{k: v for k, v in params.items() if k not in ["random_state", "max_iter"]})
 
         raise ValueError(f"Unknown model name: {name}")
