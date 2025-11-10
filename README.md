@@ -47,11 +47,25 @@ If the `conda` command isn’t recognised, make sure you’re in the Anaconda Pr
     ```
 
     Outputs are written to `outputs/` by default:
-    - `report.json`: per-seed metrics
-    - `metric_*.png`: boxplots across seeds
-    - `confusion_matrix.png`: confusion heatmap (last run)
-    - `pr_curve.png`: precision-recall curve if binary and probabilities available
-    - `model_*.joblib`: saved models per seed
+    - `report.json`: per-seed metrics in JSON format (accuracy, balanced_accuracy, precision, recall, f1, cohen_kappa, roc_auc, average_precision, confusion_matrix)
+    - `metric_*.png`: boxplots showing distribution of metrics across seeds (accuracy, balanced_accuracy, f1, cohen_kappa)
+    - `confusion_matrix.png`: confusion matrix heatmap (last run)
+    - `pr_curve.png`: precision-recall curve (binary classification with probabilities)
+    - `model_<name>_seed<N>.joblib`: trained scikit-learn models saved per seed (can be loaded with `joblib.load()` for predictions)
+
+3. Inspect saved models (optional):
+
+    ```bash
+    python inspect_models.py outputs/model_*.joblib
+    ```
+
+    This shows model type, parameters, training iterations, and other metadata. The `.joblib` files contain serialised scikit-learn models that you can load and use for predictions:
+
+    ```python
+    import joblib
+    model = joblib.load('outputs/model_mlp_seed0.joblib')
+    predictions = model.predict(X_new)  # X_new must be preprocessed the same way
+    ```
 
 ## Config reference (YAML)
 
