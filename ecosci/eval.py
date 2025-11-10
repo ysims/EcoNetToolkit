@@ -121,7 +121,7 @@ def evaluate_and_report(results, y_test, output_dir: str = "outputs"):
     for m in plot_metrics:
         if m in df.columns:
             plt.figure(figsize=(4, 3))
-            sns.boxplot(y=df[m])
+            sns.boxplot(data=df, y=m)
             plt.title(m)
             plt.tight_layout()
             plt.savefig(os.path.join(output_dir, f"metric_{m}.png"))

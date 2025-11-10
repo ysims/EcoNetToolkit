@@ -3,12 +3,12 @@ channels:
   - conda-forge
 dependencies:
   - python=3.10
-  - numpy
-  - pandas
-  - scikit-learn
-  - xgboost
-  - matplotlib
-  - seaborn
-  - pyyaml
-  - joblib
-  - pytest
+  - numpy>=1.20
+  - pandas>=1.2
+  - scikit-learn>=1.0
+  - xgboost>=1.6
+  - matplotlib>=3.0,<3.9
+  - seaborn>=0.11
+  - pyyaml>=6.0
+  - joblib>=1.0
+  - pytest>=7.0
