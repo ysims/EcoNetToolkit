@@ -89,7 +89,7 @@ class CSVDataLoader:
         if cat_cols:
             cat_pipeline = Pipeline([
                 ("imputer", SimpleImputer(strategy="most_frequent")),
-                ("onehot", OneHotEncoder(handle_unknown="ignore", sparse=False)),
+                ("onehot", OneHotEncoder(handle_unknown="ignore", sparse_output=False)),
             ])
             transformers.append(("cat", cat_pipeline, cat_cols))
 
