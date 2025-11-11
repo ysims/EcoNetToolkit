@@ -1,0 +1,94 @@
+# Possum dataset - regression example predicting age from morphological measurements
+# This dataset contains morphological measurements of mountain brushtail possums
+# https://www.kaggle.com/datasets/abrambeyer/openintro-possum
+
+problem_type: regression   # Predicting possum age (continuous variable)
+
+data:
+  path: data/possum.csv
+  
+  # Features: Morphological measurements and contextual variables
+  features: 
+    - hdlngth              # Continuous: head length in mm
+    - skullw               # Continuous: skull width in mm
+    - totlngth             # Continuous: total length in cm
+    - taill                # Continuous: tail length in cm
+    - footlgth             # Continuous: foot length in mm
+    - earconch             # Continuous: ear conch length in mm
+    - eye                  # Continuous: distance from medial canthus to lateral canthus of eye in mm
+    - chest                # Continuous: chest girth in cm
+    - belly                # Continuous: belly girth in cm
+    - sex                  # Categorical: m (male), f (female)
+    - Pop                  # Categorical: Vic (Victoria), other (NSW populations)
+  
+  # Target variable: age (in years, continuous)
+  label: age
+  
+  test_size: 0.2           # 20% for testing
+  val_size: 0.15           # 15% of remaining for validation
+  random_state: 42         # For reproducibility
+  scaling: standard        # Standardize features (important for MLP/SVM)
+  impute_strategy: mean    # Handle any missing values
+
+# Train multiple models for comparison
+models:
+  # Random Forest - typically best for tabular ecological data
+  - name: random_forest
+    params:
+      n_estimators: 200      # More trees for better performance
+      max_depth: 15          # Limit depth to avoid overfitting
+      min_samples_split: 5   # Conservative splitting
+      min_samples_leaf: 2    # Minimum samples at leaf nodes
+      max_features: sqrt     # Use sqrt of features per split
+  
+  # XGBoost - gradient boosting, often excellent for structured data
+  - name: xgboost
+    params:
+      n_estimators: 200
+      max_depth: 6
+      learning_rate: 0.1
+      subsample: 0.8
+      colsample_bytree: 0.8
+      min_child_weight: 3
+      reg_alpha: 0.1         # L1 regularization
+      reg_lambda: 1.0        # L2 regularization
+  
+  # MLP - Multi-layer perceptron (shallow neural network)
+  - name: mlp
+    params:
+      hidden_layer_sizes: [64, 32]  # Two hidden layers
+      activation: relu
+      solver: adam
+      alpha: 0.001           # L2 regularization
+      batch_size: 32
+      learning_rate: adaptive
+      learning_rate_init: 0.001
+      max_iter: 1000
+      early_stopping: true
+      validation_fraction: 0.1
+      n_iter_no_change: 20
+  
+  # SVM - Support Vector Machine with RBF kernel
+  - name: svm
+    params:
+      kernel: rbf
+      C: 10.0                # Regularization parameter
+      gamma: scale           # Kernel coefficient
+      epsilon: 0.1           # Epsilon in epsilon-SVR model
+  
+  # Linear Regression - simple baseline
+  - name: linear
+    params:
+      fit_intercept: true
+
+# Training configuration
+training:
+  num_seeds: 10            # Train each model 10 times with different seeds
+  verbose: true            # Print progress
+
+# Output configuration
+output:
+  dir: outputs             # Where to save results
+  save_models: true        # Save trained models
+  save_plots: true         # Generate evaluation plots
+  save_reports: true       # Save JSON reports with metrics

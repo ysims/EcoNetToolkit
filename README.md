@@ -65,17 +65,33 @@ If the `conda` command isn’t recognised, make sure you’re in the Anaconda Pr
 
 All commands should be run in the terminal (macOS and Linux) or the Anaconda prompt (Windows).
 
-1. Inspect and edit the example config.
+#### Quick Start with Example Datasets
 
-    `configs/example_config.yaml` shows all options with a toy dataset in `data/sample.csv`.
+EcoNetToolkit includes two example datasets to help you get started:
 
-2. Run:
+**Classification Example: Palmer Penguins**
 
-    ```bash
-    python run.py --config configs/example_config.yaml
-    ```
+Predict penguin species from morphological measurements:
 
-    Outputs are written to `outputs/` by default:
+```bash
+python run.py --config configs/penguins_config.yaml
+```
+
+This demonstrates multi-class classification (3 species: Adelie, Chinstrap, Gentoo) using features like bill length, flipper length, and body mass.
+
+**Regression Example: Possum Morphology**
+
+Predict possum age from morphological measurements:
+
+```bash
+python run.py --config configs/possum_config.yaml
+```
+
+This demonstrates continuous variable prediction using head length, skull width, and other physical measurements.
+
+#### Outputs
+
+Outputs are written to `outputs/` by default:
     
     **Single model outputs:**
     - `report_<model>.json`: per-seed metrics for each model
@@ -208,6 +224,8 @@ Notes
 
 ## Testing
 
+### Unit Tests
+
 Run the test suite to ensure everything works correctly:
 
 ```bash
@@ -226,6 +244,22 @@ The tests verify:
 - Metric computation produces sane values (0-1 ranges, no NaN/inf)
 - Full end-to-end pipeline runs without errors
 - Models produce reasonable accuracy (better than random)
+
+### End-to-End Testing
+
+Test the full pipeline with the included example datasets:
+
+**Classification (Penguins):**
+```bash
+python run.py --config configs/penguins_config.yaml
+```
+
+**Regression (Possum):**
+```bash
+python run.py --config configs/possum_config.yaml
+```
+
+These demonstrate that the toolkit works correctly for both problem types and generates appropriate metrics and visualizations.
 
 ## Troubleshooting
 

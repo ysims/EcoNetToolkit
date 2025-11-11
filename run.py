@@ -18,6 +18,7 @@ cfg = load_config(args.config)
 
 # Load and prepare data
 data_cfg = cfg.get("data", {})
+problem_type = cfg.get("problem_type", "classification")
 loader = CSVDataLoader(
     path=data_cfg.get("path"),
     features=data_cfg.get("features"),
@@ -27,6 +28,7 @@ loader = CSVDataLoader(
     random_state=data_cfg.get("random_state", 0),
     scaling=data_cfg.get("scaling", "standard"),
     impute_strategy=data_cfg.get("impute_strategy", "mean"),
+    problem_type=problem_type,
 )
 X_train, X_val, X_test, y_train, y_val, y_test = loader.prepare()
 

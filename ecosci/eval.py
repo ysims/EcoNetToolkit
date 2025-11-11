@@ -262,6 +262,69 @@ def evaluate_and_report(
         comparison_df = pd.DataFrame(comparison_data)
         print(comparison_df.to_string(index=False))
         print(f"{'='*80}\n")
+        
+        # Determine best and second-best models
+        # For regression: lower MSE is better
+        # For classification: higher balanced_accuracy is better
+        if problem_type == "regression":
+            primary_metric = "mse"
+            lower_is_better = True
+        else:
+            primary_metric = "balanced_accuracy"
+            lower_is_better = False
+        
+        # Calculate mean primary metric for each model
+        model_scores = []
+        for model_name, df in all_dfs.items():
+            if primary_metric in df.columns:
+                vals = df[primary_metric].dropna()
+                if len(vals) > 0:
+                    model_scores.append({
+                        'model': model_name,
+                        'mean': vals.mean(),
+                        'std': vals.std()
+                    })
+        
+        if len(model_scores) > 0:
+            # Sort by primary metric
+            model_scores.sort(key=lambda x: x['mean'], reverse=not lower_is_better)
+            
+            print(f"\n{'='*80}")
+            print("BEST MODELS RANKING")
+            print(f"{'='*80}")
+            print(f"Primary metric: {primary_metric.replace('_', ' ').upper()}")
+            print(f"{'Better direction: ' + ('Lower' if lower_is_better else 'Higher')}")
+            print(f"{'-'*80}")
+            
+            # Show best model
+            best = model_scores[0]
+            print(f"\n🥇 BEST MODEL: {best['model'].upper()}")
+            print(f"   {primary_metric}: {best['mean']:.4f} ± {best['std']:.4f}")
+            
+            # Show all metrics for best model
+            best_df = all_dfs[best['model']]
+            metric_cols = [c for c in display_cols if c != "seed"]
+            for col in metric_cols:
+                if col in best_df.columns and col != primary_metric:
+                    vals = best_df[col].dropna()
+                    if len(vals) > 0:
+                        print(f"   {col}: {vals.mean():.4f} ± {vals.std():.4f}")
+            
+            # Show second-best model if available
+            if len(model_scores) > 1:
+                second = model_scores[1]
+                print(f"\n🥈 SECOND BEST MODEL: {second['model'].upper()}")
+                print(f"   {primary_metric}: {second['mean']:.4f} ± {second['std']:.4f}")
+                
+                # Show all metrics for second-best model
+                second_df = all_dfs[second['model']]
+                for col in metric_cols:
+                    if col in second_df.columns and col != primary_metric:
+                        vals = second_df[col].dropna()
+                        if len(vals) > 0:
+                            print(f"   {col}: {vals.mean():.4f} ± {vals.std():.4f}")
+            
+            print(f"{'='*80}\n")
 
     # Plot comparison across models
 
