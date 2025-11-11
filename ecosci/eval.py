@@ -272,12 +272,14 @@ def evaluate_and_report(
         
         # Determine best and second-best models
         # For regression: lower MSE is better
-        # For classification: higher balanced_accuracy is better
+        # Select primary metric based on problem type
+        # For classification: Cohen's kappa is more robust as it accounts for chance agreement
+        # For regression: MSE is standard (lower is better)
         if problem_type == "regression":
             primary_metric = "mse"
             lower_is_better = True
         else:
-            primary_metric = "balanced_accuracy"
+            primary_metric = "cohen_kappa"
             lower_is_better = False
         
         # Calculate mean primary metric for each model
@@ -297,40 +299,46 @@ def evaluate_and_report(
             model_scores.sort(key=lambda x: x['mean'], reverse=not lower_is_better)
             
             print(f"\n{'='*80}")
-            print("BEST MODELS RANKING")
+            print("MODEL RANKING")
             print(f"{'='*80}")
-            print(f"Primary metric: {primary_metric.replace('_', ' ').upper()}")
-            print(f"{'Better direction: ' + ('Lower' if lower_is_better else 'Higher')}")
+            print(f"Ranked by: {primary_metric.replace('_', ' ').upper()} ({'Lower is better' if lower_is_better else 'Higher is better'})")
             print(f"{'-'*80}")
             
-            # Show best model
-            best = model_scores[0]
-            print(f"\n🥇 BEST MODEL: {best['model'].upper()}")
-            print(f"   {primary_metric}: {best['mean']:.4f} ± {best['std']:.4f}")
-            
-            # Show all metrics for best model
-            best_df = all_dfs[best['model']]
-            metric_cols = [c for c in display_cols if c != "seed"]
-            for col in metric_cols:
-                if col in best_df.columns and col != primary_metric:
-                    vals = best_df[col].dropna()
-                    if len(vals) > 0:
-                        print(f"   {col}: {vals.mean():.4f} ± {safe_std(vals):.4f}")
-            
-            # Show second-best model if available
-            if len(model_scores) > 1:
-                second = model_scores[1]
-                print(f"\n🥈 SECOND BEST MODEL: {second['model'].upper()}")
-                print(f"   {primary_metric}: {second['mean']:.4f} ± {second['std']:.4f}")
+            # Create ranking table with all metrics
+            ranking_data = []
+            for rank, score in enumerate(model_scores, 1):
+                model_name = score['model']
+                model_df = all_dfs[model_name]
                 
-                # Show all metrics for second-best model
-                second_df = all_dfs[second['model']]
+                # Get rank indicator
+                if rank == 1:
+                    rank_str = "🥇"
+                elif rank == 2:
+                    rank_str = "🥈"
+                elif rank == 3:
+                    rank_str = "🥉"
+                else:
+                    rank_str = f"{rank}."
+
+                row = {
+                    "Rank": rank_str,
+                    "Model": model_name.upper(),
+                    primary_metric: f"{score['mean']:.4f} ± {score['std']:.4f}"
+                }
+                
+                # Add other metrics
+                metric_cols = [c for c in display_cols if c != "seed" and c != primary_metric]
                 for col in metric_cols:
-                    if col in second_df.columns and col != primary_metric:
-                        vals = second_df[col].dropna()
+                    if col in model_df.columns:
+                        vals = model_df[col].dropna()
                         if len(vals) > 0:
-                            print(f"   {col}: {vals.mean():.4f} ± {safe_std(vals):.4f}")
+                            row[col] = f"{vals.mean():.4f} ± {safe_std(vals):.4f}"
+                
+                ranking_data.append(row)
             
+            # Print ranking table
+            ranking_df = pd.DataFrame(ranking_data)
+            print(ranking_df.to_string(index=False))
             print(f"{'='*80}\n")
 
     # Plot comparison across models

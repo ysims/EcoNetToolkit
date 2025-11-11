@@ -83,7 +83,7 @@ models:
 
 # Training configuration
 training:
-  num_seeds: 10            # Train each model 10 times with different seeds
+  repetitions: 10            # Train each model 10 times with different seeds
   verbose: true            # Print progress
 
 # Output configuration
