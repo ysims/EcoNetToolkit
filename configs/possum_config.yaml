@@ -50,8 +50,8 @@ models:
       subsample: 0.8
       colsample_bytree: 0.8
       min_child_weight: 3
-      reg_alpha: 0.1         # L1 regularization
-      reg_lambda: 1.0        # L2 regularization
+      reg_alpha: 0.1         # L1 regularisation
+      reg_lambda: 1.0        # L2 regularisation
   
   # MLP - Multi-layer perceptron (shallow neural network)
   - name: mlp
@@ -59,7 +59,7 @@ models:
       hidden_layer_sizes: [64, 32]  # Two hidden layers
       activation: relu
       solver: adam
-      alpha: 0.001           # L2 regularization
+      alpha: 0.001           # L2 regularisation
       batch_size: 32
       learning_rate: adaptive
       learning_rate_init: 0.001
@@ -72,7 +72,7 @@ models:
   - name: svm
     params:
       kernel: rbf
-      C: 10.0                # Regularization parameter
+      C: 10.0                # Regularisation parameter
       gamma: scale           # Kernel coefficient
       epsilon: 0.1           # Epsilon in epsilon-SVR model
   

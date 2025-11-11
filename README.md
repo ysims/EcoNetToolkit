@@ -219,7 +219,7 @@ output:
 - `early_stopping`: Stop when validation plateaus
 - `n_iter_no_change`: Patience - epochs to wait without improvement (default: 10)
 - `validation_fraction`: Fraction of training data for validation
-- `alpha`: L2 regularization
+- `alpha`: L2 regularisation
 - `learning_rate_init`: Initial learning rate
 
 **Random Forest**
@@ -229,7 +229,7 @@ output:
 - `max_features`: Features per split (`sqrt`, `log2`, or `null`)
 
 **SVM (Support Vector Machine)**
-- `C`: Regularization parameter
+- `C`: Regularisation parameter
 - `kernel`: `rbf`, `linear`, `poly`, or `sigmoid`
 - `gamma`: Kernel coefficient (`scale` or `auto`)
 
@@ -241,7 +241,7 @@ output:
 - `colsample_bytree`: Feature ratio
 
 **Logistic Regression** (classification only)
-- `C`: Inverse regularization strength
+- `C`: Inverse regularisation strength
 - `max_iter`: Max solver iterations
 - `solver`: `lbfgs`, `liblinear`, `newton-cg`, etc.
 - `penalty`: `l1`, `l2`, `elasticnet`, or `null`
@@ -263,7 +263,7 @@ output:
 ### Additional notes
 
 - For classification with two classes, ROC-AUC and PR-AUC are computed if the model can produce probabilities (e.g., MLP, RandomForest, SVM with `probability=True`).
-- For multi-class problems, macro-averaged Precision/Recall/F1 summarize performance across all classes.
+- For multi-class problems, macro-averaged Precision/Recall/F1 summarise performance across all classes.
 - Models are ranked by Cohen's kappa (classification) or MSE (regression) to identify the best performer.
 
 ## Using your own data
