@@ -98,17 +98,18 @@ def test_full_pipeline_from_config_to_report(temp_config):
     assert isinstance(summary, list)
     assert len(summary) == cfg["training"]["repetitions"]
     # Check that at least one report file exists
-    assert os.path.exists(
-        os.path.join(cfg["output_dir"], "report_logistic.json")
-    ) or os.path.exists(os.path.join(cfg["output_dir"], "report_all_models.json"))
-
+    assert (
+        os.path.exists(os.path.join(cfg['output_dir'], 'report_logistic.json')) or
+        os.path.exists(os.path.join(cfg['output_dir'], 'report_all_models.json'))
+    )
+    
     # Verify report is valid
     report_path = (
-        os.path.join(cfg["output_dir"], "report_logistic.json")
-        if os.path.exists(os.path.join(cfg["output_dir"], "report_logistic.json"))
-        else os.path.join(cfg["output_dir"], "report_all_models.json")
+        os.path.join(cfg['output_dir'], 'report_logistic.json')
+        if os.path.exists(os.path.join(cfg['output_dir'], 'report_logistic.json'))
+        else os.path.join(cfg['output_dir'], 'report_all_models.json')
     )
-    with open(report_path, "r") as f:
+    with open(report_path, 'r') as f:
         report = json.load(f)
         assert isinstance(report, list)
         assert len(report) > 0

@@ -6,7 +6,6 @@ import pandas as pd
 import tempfile
 import os
 import shutil
-import joblib
 
 from ecosci.data import CSVDataLoader
 from ecosci.models import ModelZoo
