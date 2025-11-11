@@ -8,6 +8,7 @@ What this does:
 """
 
 from typing import Any, Dict, List
+from tqdm import tqdm
 import numpy as np
 import random
 import joblib
@@ -72,14 +73,10 @@ class Trainer:
             mname = model_cfg.get("name", "mlp")
             mparams = model_cfg.get("params", {})
 
-            print(f"\n{'='*80}")
-            print(f"Training Model {model_idx+1}/{len(models_cfg)}: {mname.upper()}")
-            print(f"{'='*80}")
-
             model_results = []
 
-            for i, s in enumerate(seeds_list):
-                print(f"  Run {i+1}/{len(seeds_list)} with seed={s}")
+            # Use tqdm for progress bar
+            for s in tqdm(seeds_list, desc=f"{mname.upper()}", unit="seed"):
                 self._set_seed(s)
 
                 # ensure model has random_state where appropriate

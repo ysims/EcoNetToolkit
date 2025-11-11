@@ -20,6 +20,13 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 
+def safe_std(vals):
+    """Calculate std, returning 0.0 instead of nan when there's only 1 value."""
+    if len(vals) <= 1:
+        return 0.0
+    return vals.std()
+
+
 def compute_classification_metrics(y_true, y_pred, y_proba=None) -> Dict[str, Any]:
     from sklearn.metrics import (
         accuracy_score,
@@ -239,7 +246,7 @@ def evaluate_and_report(
             if col in df.columns:
                 vals = df[col].dropna()
                 if len(vals) > 0:
-                    print(f"{col:20s}: {vals.mean():.4f} ± {vals.std():.4f}")
+                    print(f"{col:20s}: {vals.mean():.4f} ± {safe_std(vals):.4f}")
         print(f"{'-'*80}\n")
 
     # Model comparison table
@@ -254,7 +261,7 @@ def evaluate_and_report(
                 if col in df.columns:
                     vals = df[col].dropna()
                     if len(vals) > 0:
-                        row[col] = f"{vals.mean():.4f} ± {vals.std():.4f}"
+                        row[col] = f"{vals.mean():.4f} ± {safe_std(vals):.4f}"
                     else:
                         row[col] = "N/A"
             comparison_data.append(row)
@@ -282,7 +289,7 @@ def evaluate_and_report(
                     model_scores.append({
                         'model': model_name,
                         'mean': vals.mean(),
-                        'std': vals.std()
+                        'std': safe_std(vals)
                     })
         
         if len(model_scores) > 0:
@@ -308,7 +315,7 @@ def evaluate_and_report(
                 if col in best_df.columns and col != primary_metric:
                     vals = best_df[col].dropna()
                     if len(vals) > 0:
-                        print(f"   {col}: {vals.mean():.4f} ± {vals.std():.4f}")
+                        print(f"   {col}: {vals.mean():.4f} ± {safe_std(vals):.4f}")
             
             # Show second-best model if available
             if len(model_scores) > 1:
@@ -322,7 +329,7 @@ def evaluate_and_report(
                     if col in second_df.columns and col != primary_metric:
                         vals = second_df[col].dropna()
                         if len(vals) > 0:
-                            print(f"   {col}: {vals.mean():.4f} ± {vals.std():.4f}")
+                            print(f"   {col}: {vals.mean():.4f} ± {safe_std(vals):.4f}")
             
             print(f"{'='*80}\n")
 

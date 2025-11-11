@@ -65,8 +65,6 @@ If the `conda` command isn’t recognised, make sure you’re in the Anaconda Pr
 
 All commands should be run in the terminal (macOS and Linux) or the Anaconda prompt (Windows).
 
-#### Quick Start with Example Datasets
-
 EcoNetToolkit includes two example datasets to help you get started:
 
 **Classification Example: Palmer Penguins**
@@ -120,9 +118,9 @@ Outputs are written to `outputs/` by default:
 
 ## Config reference (YAML)
 
-You can train **single or multiple models** for comparison. See `configs/example_config.yaml` for comprehensive examples of all model types and their parameters.
+You can train **single or multiple models** for comparison. See `configs/penguins_config.yaml` for comprehensive examples of all model types and their parameters.
 
-### Simple example (single model)
+### Simple example (single model, classification)
 
 ```yaml
 problem_type: classification

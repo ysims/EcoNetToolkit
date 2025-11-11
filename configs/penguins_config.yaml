@@ -76,7 +76,7 @@ models:
       learning_rate: adaptive
 
 training:
-  repetitions: 10          # Train 10 times with different random seeds
+  num_seeds: 10          # Train 10 times with different random seeds
   random_seed: 42         # Base seed for reproducibility
 
 output_dir: outputs/penguins  # Save results to penguins subdirectory
