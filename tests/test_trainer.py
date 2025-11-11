@@ -175,10 +175,12 @@ def test_trainer_runs_regression(regression_csv, temp_output_dir):
     X_train, X_val, X_test, y_train, y_val, y_test = loader.prepare()
 
     cfg = {
-        "model": {
-            "name": "random_forest",
-            "params": {"n_estimators": 10, "random_state": 42},
-        },
+        "models": [
+            {
+                "name": "random_forest",
+                "params": {"n_estimators": 10, "random_state": 42},
+            }
+        ],
         "training": {"repetitions": 1, "random_seed": 42},
         "output_dir": temp_output_dir,
     }
@@ -209,10 +211,12 @@ def test_trainer_regression_multiple_seeds(regression_csv, temp_output_dir):
     X_train, X_val, X_test, y_train, y_val, y_test = loader.prepare()
 
     cfg = {
-        "model": {
-            "name": "mlp",
-            "params": {"hidden_layer_sizes": [16], "max_iter": 100},
-        },
+        "models": [
+            {
+                "name": "mlp",
+                "params": {"hidden_layer_sizes": [16], "max_iter": 100},
+            }
+        ],
         "training": {"repetitions": 3, "random_seed": 0},
         "output_dir": temp_output_dir,
     }
@@ -243,7 +247,7 @@ def test_trainer_regression_saves_models(regression_csv, temp_output_dir):
     X_train, X_val, X_test, y_train, y_val, y_test = loader.prepare()
 
     cfg = {
-        "model": {"name": "svm", "params": {"C": 1.0}},
+        "models": [{"name": "svm", "params": {"C": 1.0}}],
         "training": {"repetitions": 2, "random_seed": 0},
         "output_dir": temp_output_dir,
     }
