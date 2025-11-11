@@ -101,32 +101,56 @@ This demonstrates continuous variable prediction using head length, skull width,
 
 #### Outputs
 
-Outputs are written to `outputs/` by default:
-    
-    **Single model outputs:**
-    - `report_<model>.json`: per-seed metrics for each model
-    - `confusion_matrix_<model>.png`: confusion matrix for each model
-    - `pr_curve_<model>.png`: precision-recall curve for each model
-    - `model_<name>_seed<N>.joblib`: trained models saved per seed
-    
-    **Multi-model comparison outputs:**
-    - `report_all_models.json`: combined metrics across all models
-    - `comparison_*.png`: side-by-side boxplots comparing models (accuracy, f1, etc.)
-    - `pr_curve_comparison.png`: overlaid precision-recall curves for all models
+Outputs are organised into folders based on your config file name. For example, running `configs/possum_config.yaml` creates:
 
-3. Inspect saved models (optional):
+```
+outputs/
+└── possum_config/                    # Named after your config file
+    ├── random_forest/                # Model-specific subfolder
+    │   ├── model_random_forest_seed42.joblib
+    │   ├── model_random_forest_seed43.joblib
+    │   ├── ...
+    │   ├── report_random_forest.json
+    │   ├── confusion_matrix_random_forest.png   (classification only)
+    │   ├── pr_curve_random_forest.png           (classification only)
+    │   └── residual_plot_random_forest.png      (regression only)
+    ├── xgboost/
+    ├── mlp/
+    ├── svm/
+    ├── linear/
+    ├── report_all_models.json        # Combined results across all models
+    ├── comparison_mse.png             # Comparison plots (regression)
+    ├── comparison_r2.png
+    ├── comparison_accuracy.png        # Comparison plots (classification)
+    ├── comparison_f1.png
+    └── pr_curve_comparison.png        # Combined PR curves (classification)
+```
 
-    ```bash
-    python inspect_models.py outputs/model_*.joblib
-    ```
+**Model-specific outputs** (in each model subfolder):
+- `model_<name>_seed<N>.joblib`: trained models for each random seed
+- `report_<model>.json`: per-seed metrics (MSE, R², accuracy, F1, etc.)
+- `confusion_matrix_<model>.png`: confusion matrix heatmap (classification)
+- `pr_curve_<model>.png`: precision-recall curve (classification)
+- `residual_plot_<model>.png`: predicted vs actual and residuals (regression)
 
-    This shows model type, parameters, training iterations, and other metadata. The `.joblib` files contain serialised scikit-learn models that you can load and use for predictions:
+**Multi-model comparison outputs** (in the config folder root):
+- `report_all_models.json`: combined metrics across all models and seeds
+- `comparison_*.png`: side-by-side boxplots comparing model performance
+- `pr_curve_comparison.png`: overlaid precision-recall curves (classification)
 
-    ```python
-    import joblib
-    model = joblib.load('outputs/model_mlp_seed0.joblib')
-    predictions = model.predict(X_new)  # X_new must be preprocessed the same way
-    ```
+### Inspecting Saved Models
+
+```bash
+python inspect_models.py outputs/possum_config/random_forest/model_*.joblib
+```
+
+This shows model type, parameters, training iterations, and other metadata. The `.joblib` files contain serialised scikit-learn models that you can load and use for predictions:
+
+```python
+import joblib
+model = joblib.load('outputs/possum_config/random_forest/model_random_forest_seed42.joblib')
+predictions = model.predict(X_new)  # X_new must be preprocessed the same way
+```
 
 ## Config reference (YAML)
 
@@ -155,34 +179,15 @@ models:
       early_stopping: true
 
 training:
-    repetitions: 5
+    repetitions: 5      # or num_seeds: 5
     random_seed: 0
 
-output_dir: outputs
+# Optional: specify output directory (defaults to outputs/<config_name>/)
+output:
+    dir: outputs/my_experiment
 ```
 
-### Multi-model comparison example
-
-Train and compare multiple models at once (see `configs/multi_model_config.yaml`):
-
-```yaml
-models:
-  - name: logistic
-    params:
-      C: 1.0
-      max_iter: 1000
-  
-  - name: random_forest
-    params:
-      n_estimators: 100
-      max_depth: null
-  
-  - name: mlp
-    params:
-      hidden_layer_sizes: [32, 16]
-      max_iter: 300
-      early_stopping: true
-```
+**Note:** If `output.dir` is not specified, outputs are automatically saved to `outputs/<config_name>/` where `<config_name>` is derived from your config file name.
 
 ### Available models and key parameters
 
@@ -213,19 +218,43 @@ models:
 - `subsample`: Training instance ratio
 - `colsample_bytree`: Feature ratio
 
-**Logistic Regression**
+**Logistic Regression** (classification only)
 - `C`: Inverse regularization strength
 - `max_iter`: Max solver iterations
 - `solver`: `lbfgs`, `liblinear`, `newton-cg`, etc.
 - `penalty`: `l1`, `l2`, `elasticnet`, or `null`
 
-Notes
-- For classification with two classes, we compute ROC-AUC and PR AUC if the
-	model can produce probabilities (e.g., MLP, RandomForest, SVM with probability=True).
-- Balanced accuracy is helpful when one class is much rarer than the other.
-- If you have many classes, macro-averaged Precision/Recall/F1 summarise across them.
+**Linear Regression** (regression only)
+- `fit_intercept`: Whether to calculate the intercept (default: `true`)
+- `normalize`: Whether to normalize features (deprecated, use `scaling` in data config)
 
-## Tips for your own data
+### Notes on metrics
+
+**Classification:**
+- Primary ranking metric: **Cohen's kappa** (accounts for chance agreement, robust for imbalanced data)
+- Also reported: accuracy, balanced accuracy, precision, recall, F1, ROC-AUC, PR-AUC
+
+**Regression:**
+- Primary ranking metric: **MSE** (Mean Squared Error, lower is better)
+- Also reported: RMSE, MAE, R², MAPE
+
+### Additional notes
+
+- For classification with two classes, ROC-AUC and PR-AUC are computed if the model can produce probabilities (e.g., MLP, RandomForest, SVM with `probability=True`).
+- For multi-class problems, macro-averaged Precision/Recall/F1 summarize performance across all classes.
+- Models are ranked by Cohen's kappa (classification) or MSE (regression) to identify the best performer.
+
+## Using your own data
+
+1. Place your CSV file in the `data` folder.
+2. Make a `yaml` config file in the `configs` folder for your data. 
+
+    Use one of the existing config files (penguin for classification; possum for regression) as a basis for your data. Change the CSV path to point to your CSV file and change the features and label parameters to match the columns in your CSV file. The parameters for the different models should be tuned for your problem.
+
+    If you are unsure how to make the `yaml` file, try providing ChatGPT (or your favourite LLM) with your CSV file (or the first few rows) and link to this repository and ask it to make a config file for your data. Consider data privacy before doing this. 
+
+
+Some tips: 
 
 - Ensure your `features:` list includes only columns available in your CSV.
 - Text categories are automatically one-hot encoded.
@@ -234,18 +263,20 @@ Notes
 
 ## Testing
 
+Testing is provided for development purposes and is used by the CI system when pull requests are created.
+
 ### Unit Tests
 
 Run the test suite to ensure everything works correctly:
 
 ```bash
-pytest tests/test_ecosci.py -v
+python run_tests.py all -v
 ```
 
 Or run with coverage:
 
 ```bash
-pytest tests/test_ecosci.py -v --cov=ecosci --cov-report=html
+python run_tests.py all -v --cov=ecosci --cov-report=html
 ```
 
 The tests verify:
@@ -273,7 +304,6 @@ These demonstrate that the toolkit works correctly for both problem types and ge
 
 ## Troubleshooting
 
-- ImportError for xgboost: install it with `pip install xgboost` or switch to another model.
 - Shapes or column errors: double-check your `features:` and `label:` names.
 - No probabilities for some models: not all models support `predict_proba`; plots that need probabilities are skipped automatically.
 
