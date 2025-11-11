@@ -1,4 +1,5 @@
 """EcoNetToolkit package namespace."""
+
 from .config import load_config
 from .data import CSVDataLoader
 from .models import ModelZoo
