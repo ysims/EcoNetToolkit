@@ -111,8 +111,10 @@ class Trainer:
                         print(f"    Warning: predict_proba failed: {e}")
                         y_proba = None
 
-                # save model for this run
-                fname = os.path.join(self.output_dir, f"model_{mname}_seed{s}.joblib")
+                # save model for this run in model-specific subfolder
+                model_dir = os.path.join(self.output_dir, mname)
+                os.makedirs(model_dir, exist_ok=True)
+                fname = os.path.join(model_dir, f"model_{mname}_seed{s}.joblib")
                 joblib.dump(model, fname)
 
                 model_results.append(
