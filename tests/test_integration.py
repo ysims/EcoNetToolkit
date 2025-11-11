@@ -105,7 +105,9 @@ def test_full_pipeline_from_config_to_report(temp_config):
     # Verify report is valid
     report_path = (
         os.path.join(cfg["output_dir"], "logistic", "report_logistic.json")
-        if os.path.exists(os.path.join(cfg["output_dir"], "logistic", "report_logistic.json"))
+        if os.path.exists(
+            os.path.join(cfg["output_dir"], "logistic", "report_logistic.json")
+        )
         else os.path.join(cfg["output_dir"], "report_all_models.json")
     )
     with open(report_path, "r") as f:
@@ -238,7 +240,9 @@ def test_full_pipeline_regression(temp_regression_config):
     assert "r2" in summary[0]
 
     # Verify report file exists in model-specific subfolder
-    assert os.path.exists(os.path.join(cfg["output_dir"], "random_forest", "report_random_forest.json"))
+    assert os.path.exists(
+        os.path.join(cfg["output_dir"], "random_forest", "report_random_forest.json")
+    )
 
 
 def test_regression_pipeline_with_mlp(regression_csv, temp_output_dir):
