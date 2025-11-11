@@ -43,6 +43,7 @@ def test_mlp_custom_params_are_applied():
     assert params["hidden_layer_sizes"] == (64, 32)
     assert params["max_iter"] == 100
 
+
 def test_mlp_early_stopping():
     """Test MLP with early stopping enabled."""
     model = ModelZoo.get_model(
