@@ -6,6 +6,7 @@ What this does:
 - Saves each trained model as a `.joblib` file
 - Returns predictions per run so the evaluator can compute metrics
 """
+
 from typing import Any, Dict, List
 import numpy as np
 import random
@@ -25,7 +26,13 @@ class Trainer:
     output_dir : str
         Where to save trained models and reports.
     """
-    def __init__(self, model_factory, problem_type: str = "classification", output_dir: str = "outputs"):
+
+    def __init__(
+        self,
+        model_factory,
+        problem_type: str = "classification",
+        output_dir: str = "outputs",
+    ):
         self.model_factory = model_factory
         self.problem_type = problem_type
         self.output_dir = output_dir
@@ -47,7 +54,7 @@ class Trainer:
         - training.random_seed (base for repetitions)
         """
         models_cfg = cfg.get("models", [])
-        
+
         seeds = cfg.get("training", {}).get("seeds")
         repetitions = cfg.get("training", {}).get("repetitions", 1)
         base_seed = cfg.get("training", {}).get("random_seed", 0)
@@ -64,11 +71,11 @@ class Trainer:
         for model_idx, model_cfg in enumerate(models_cfg):
             mname = model_cfg.get("name", "mlp")
             mparams = model_cfg.get("params", {})
-            
+
             print(f"\n{'='*80}")
             print(f"Training Model {model_idx+1}/{len(models_cfg)}: {mname.upper()}")
             print(f"{'='*80}")
-            
+
             model_results = []
 
             for i, s in enumerate(seeds_list):
@@ -84,7 +91,11 @@ class Trainer:
 
                 # fit: sklearn models have fit(X, y). For MLP, early_stopping is
                 # handled internally if enabled via params in the YAML config.
-                if X_val is not None and hasattr(model, "partial_fit") and cfg.get("training", {}).get("use_partial_fit", False):
+                if (
+                    X_val is not None
+                    and hasattr(model, "partial_fit")
+                    and cfg.get("training", {}).get("use_partial_fit", False)
+                ):
                     # not used by default; kept minimal
                     model.partial_fit(X_train, y_train)
                 else:
@@ -105,13 +116,15 @@ class Trainer:
                 fname = os.path.join(self.output_dir, f"model_{mname}_seed{s}.joblib")
                 joblib.dump(model, fname)
 
-                model_results.append({
-                    "seed": s, 
-                    "model_name": mname,
-                    "model_path": fname, 
-                    "y_pred": y_pred, 
-                    "y_proba": y_proba
-                })
+                model_results.append(
+                    {
+                        "seed": s,
+                        "model_name": mname,
+                        "model_path": fname,
+                        "y_pred": y_pred,
+                        "y_proba": y_proba,
+                    }
+                )
 
             all_results[mname] = model_results
 

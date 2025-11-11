@@ -34,7 +34,7 @@ X_train, X_val, X_test, y_train, y_val, y_test = loader.prepare()
 trainer = Trainer(
     ModelZoo.get_model,
     problem_type=cfg.get("problem_type", "classification"),
-    output_dir=cfg.get("output_dir", "outputs")
+    output_dir=cfg.get("output_dir", "outputs"),
 )
 results = trainer.run(cfg, X_train, X_val, X_test, y_train, y_val, y_test)
 

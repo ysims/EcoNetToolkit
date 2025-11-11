@@ -8,6 +8,7 @@ What this does for you (no coding required):
 - Encodes text/categorical columns into numbers automatically
 - Splits your data into train/validation/test sets
 """
+
 from typing import List, Optional, Tuple
 import pandas as pd
 
@@ -26,9 +27,17 @@ class CSVDataLoader:
         frequent value.
     """
 
-    def __init__(self, path: str, features: Optional[List[str]] = None, label: Optional[str] = None,
-                 test_size: float = 0.2, val_size: float = 0.2, random_state: int = 0,
-                 scaling: str = "standard", impute_strategy: str = "mean"):
+    def __init__(
+        self,
+        path: str,
+        features: Optional[List[str]] = None,
+        label: Optional[str] = None,
+        test_size: float = 0.2,
+        val_size: float = 0.2,
+        random_state: int = 0,
+        scaling: str = "standard",
+        impute_strategy: str = "mean",
+    ):
         self.path = path
         self.features = features
         self.label = label
@@ -56,7 +65,12 @@ class CSVDataLoader:
         """
         from sklearn.model_selection import train_test_split
         from sklearn.impute import SimpleImputer
-        from sklearn.preprocessing import StandardScaler, MinMaxScaler, OneHotEncoder, LabelEncoder
+        from sklearn.preprocessing import (
+            StandardScaler,
+            MinMaxScaler,
+            OneHotEncoder,
+            LabelEncoder,
+        )
         from sklearn.compose import ColumnTransformer
         from sklearn.pipeline import Pipeline
         import numpy as np
@@ -72,9 +86,9 @@ class CSVDataLoader:
 
         X = df[self.features].copy()
         y = df[self.label].copy()
-        
+
         # Encode labels if they are strings/categorical (needed for XGBoost and others)
-        if y.dtype == 'object' or y.dtype.name == 'category':
+        if y.dtype == "object" or y.dtype.name == "category":
             label_encoder = LabelEncoder()
             y = label_encoder.fit_transform(y)
             # Store the encoder for later use if needed
@@ -91,30 +105,48 @@ class CSVDataLoader:
         transformers = []
 
         if numeric_cols:
-            num_pipeline = Pipeline([
-                ("imputer", SimpleImputer(strategy=self.impute_strategy)),
-                ("scaler", StandardScaler() if self.scaling == "standard" else MinMaxScaler()),
-            ])
+            num_pipeline = Pipeline(
+                [
+                    ("imputer", SimpleImputer(strategy=self.impute_strategy)),
+                    (
+                        "scaler",
+                        (
+                            StandardScaler()
+                            if self.scaling == "standard"
+                            else MinMaxScaler()
+                        ),
+                    ),
+                ]
+            )
             transformers.append(("num", num_pipeline, numeric_cols))
 
         if cat_cols:
-            cat_pipeline = Pipeline([
-                ("imputer", SimpleImputer(strategy="most_frequent")),
-                ("onehot", OneHotEncoder(handle_unknown="ignore", sparse_output=False)),
-            ])
+            cat_pipeline = Pipeline(
+                [
+                    ("imputer", SimpleImputer(strategy="most_frequent")),
+                    (
+                        "onehot",
+                        OneHotEncoder(handle_unknown="ignore", sparse_output=False),
+                    ),
+                ]
+            )
             transformers.append(("cat", cat_pipeline, cat_cols))
 
         preprocessor = ColumnTransformer(transformers, remainder="drop")
 
         X_proc = preprocessor.fit_transform(X)
-        
+
         # Check number of unique classes for stratification
         n_unique = len(np.unique(y))
         stratify_y = y if n_unique <= 20 else None
 
         # Split: first test, then validation from remaining
         X_train_val, X_test, y_train_val, y_test = train_test_split(
-            X_proc, y, test_size=self.test_size, random_state=self.random_state, stratify=stratify_y
+            X_proc,
+            y,
+            test_size=self.test_size,
+            random_state=self.random_state,
+            stratify=stratify_y,
         )
 
         # compute val fraction relative to train_val
@@ -125,8 +157,18 @@ class CSVDataLoader:
             n_unique_train = len(np.unique(y_train_val))
             stratify_train = y_train_val if n_unique_train <= 20 else None
             X_train, X_val, y_train, y_val = train_test_split(
-                X_train_val, y_train_val, test_size=val_fraction, random_state=self.random_state,
-                stratify=stratify_train
+                X_train_val,
+                y_train_val,
+                test_size=val_fraction,
+                random_state=self.random_state,
+                stratify=stratify_train,
             )
 
-        return X_train, X_val, X_test, np.array(y_train), (None if y_val is None else np.array(y_val)), np.array(y_test)
+        return (
+            X_train,
+            X_val,
+            X_test,
+            np.array(y_train),
+            (None if y_val is None else np.array(y_val)),
+            np.array(y_test),
+        )

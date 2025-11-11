@@ -11,6 +11,7 @@ Outputs:
 - `confusion_matrix.png`: confusion matrix heatmap (last run)
 - `pr_curve.png`: precision-recall curve if binary and probabilities exist
 """
+
 from typing import Dict, Any, Optional
 import os
 import json
@@ -21,17 +22,38 @@ import seaborn as sns
 
 def compute_classification_metrics(y_true, y_pred, y_proba=None) -> Dict[str, Any]:
     from sklearn.metrics import (
-        accuracy_score, precision_score, recall_score, f1_score, 
-        roc_auc_score, confusion_matrix, balanced_accuracy_score, 
-        average_precision_score, cohen_kappa_score
+        accuracy_score,
+        precision_score,
+        recall_score,
+        f1_score,
+        roc_auc_score,
+        confusion_matrix,
+        balanced_accuracy_score,
+        average_precision_score,
+        cohen_kappa_score,
     )
 
     out = {}
     out["accuracy"] = accuracy_score(y_true, y_pred)
     out["balanced_accuracy"] = balanced_accuracy_score(y_true, y_pred)
-    out["precision"] = precision_score(y_true, y_pred, average="binary" if len(np.unique(y_true))==2 else "macro", zero_division=0)
-    out["recall"] = recall_score(y_true, y_pred, average="binary" if len(np.unique(y_true))==2 else "macro", zero_division=0)
-    out["f1"] = f1_score(y_true, y_pred, average="binary" if len(np.unique(y_true))==2 else "macro", zero_division=0)
+    out["precision"] = precision_score(
+        y_true,
+        y_pred,
+        average="binary" if len(np.unique(y_true)) == 2 else "macro",
+        zero_division=0,
+    )
+    out["recall"] = recall_score(
+        y_true,
+        y_pred,
+        average="binary" if len(np.unique(y_true)) == 2 else "macro",
+        zero_division=0,
+    )
+    out["f1"] = f1_score(
+        y_true,
+        y_pred,
+        average="binary" if len(np.unique(y_true)) == 2 else "macro",
+        zero_division=0,
+    )
     out["cohen_kappa"] = cohen_kappa_score(y_true, y_pred)
     out["confusion_matrix"] = confusion_matrix(y_true, y_pred).tolist()
 
@@ -40,11 +62,15 @@ def compute_classification_metrics(y_true, y_pred, y_proba=None) -> Dict[str, An
             # Binary classification: use positive class probabilities
             if y_proba.ndim == 2 and y_proba.shape[1] == 2:
                 out["roc_auc"] = roc_auc_score(y_true, y_proba[:, 1])
-                out["average_precision"] = average_precision_score(y_true, y_proba[:, 1])
+                out["average_precision"] = average_precision_score(
+                    y_true, y_proba[:, 1]
+                )
             # Multiclass: use OVR strategy
             elif y_proba.ndim == 2 and y_proba.shape[1] > 2:
                 out["roc_auc"] = roc_auc_score(y_true, y_proba, multi_class="ovr")
-                out["average_precision"] = average_precision_score(y_true, y_proba, average="macro")
+                out["average_precision"] = average_precision_score(
+                    y_true, y_proba, average="macro"
+                )
             # 1D probabilities (rare, but handle it)
             else:
                 out["roc_auc"] = roc_auc_score(y_true, y_proba)
@@ -128,7 +154,7 @@ def evaluate_and_report(results, y_test, output_dir: str = "outputs", problem_ty
     # Compute metrics for each model
     all_summaries = {}
     all_dfs = {}
-    
+
     for model_name, model_results in results.items():
         summary = []
         for r in model_results:
@@ -144,7 +170,7 @@ def evaluate_and_report(results, y_test, output_dir: str = "outputs", problem_ty
             metrics["seed"] = seed
             metrics["model"] = model_name
             summary.append(metrics)
-        
+
         all_summaries[model_name] = summary
         all_dfs[model_name] = pd.DataFrame(summary)
 
@@ -157,7 +183,7 @@ def evaluate_and_report(results, y_test, output_dir: str = "outputs", problem_ty
     # Combine all results for comparison
     combined_df = pd.concat(all_dfs.values(), ignore_index=True)
     combined_summary = [item for sublist in all_summaries.values() for item in sublist]
-    
+
     # Save combined report
     with open(os.path.join(output_dir, "report_all_models.json"), "w") as f:
         json.dump(combined_summary, f, indent=2)
@@ -182,8 +208,13 @@ def evaluate_and_report(results, y_test, output_dir: str = "outputs", problem_ty
         print(f"\n{'='*80}")
         print(f"RESULTS FOR MODEL: {model_name.upper()}")
         print(f"{'='*80}")
-        print(df[display_cols].to_string(index=False, float_format=lambda x: f"{x:.4f}" if not pd.isna(x) else "N/A"))
-        
+        print(
+            df[display_cols].to_string(
+                index=False,
+                float_format=lambda x: f"{x:.4f}" if not pd.isna(x) else "N/A",
+            )
+        )
+
         print(f"\n{'-'*80}")
         print(f"SUMMARY STATISTICS FOR {model_name.upper()} (mean ± std)")
         print(f"{'-'*80}")
@@ -211,7 +242,7 @@ def evaluate_and_report(results, y_test, output_dir: str = "outputs", problem_ty
                     else:
                         row[col] = "N/A"
             comparison_data.append(row)
-        
+
         comparison_df = pd.DataFrame(comparison_data)
         print(comparison_df.to_string(index=False))
         print(f"{'='*80}\n")
@@ -226,8 +257,8 @@ def evaluate_and_report(results, y_test, output_dir: str = "outputs", problem_ty
                 sns.boxplot(data=combined_df, x="model", y=m)
                 plt.title(f"{m.replace('_', ' ').title()} - Model Comparison")
                 plt.xlabel("Model")
-                plt.ylabel(m.replace('_', ' ').title())
-                plt.xticks(rotation=45, ha='right')
+                plt.ylabel(m.replace("_", " ").title())
+                plt.xticks(rotation=45, ha="right")
                 plt.tight_layout()
                 plt.savefig(os.path.join(output_dir, f"comparison_{m}.png"))
                 plt.close()
@@ -237,7 +268,7 @@ def evaluate_and_report(results, y_test, output_dir: str = "outputs", problem_ty
             if m in combined_df.columns:
                 plt.figure(figsize=(4, 3))
                 sns.boxplot(data=combined_df, y=m)
-                plt.title(m.replace('_', ' ').title())
+                plt.title(m.replace("_", " ").title())
                 plt.tight_layout()
                 plt.savefig(os.path.join(output_dir, f"metric_{m}.png"))
                 plt.close()

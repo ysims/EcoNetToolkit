@@ -1,21 +1,26 @@
 """Tests for model instantiation and basic functionality."""
+
 import pytest
 from ecosci.models import ModelZoo
 
 
-@pytest.mark.parametrize("model_name", ['mlp', 'random_forest', 'svm', 'logistic'])
+@pytest.mark.parametrize("model_name", ["mlp", "random_forest", "svm", "logistic"])
 def test_all_models_can_be_instantiated(model_name):
     """Test that all supported models can be created."""
-    model = ModelZoo.get_model(model_name, problem_type='classification', params={'random_state': 42})
+    model = ModelZoo.get_model(
+        model_name, problem_type="classification", params={"random_state": 42}
+    )
     assert model is not None
-    assert hasattr(model, 'fit')
-    assert hasattr(model, 'predict')
+    assert hasattr(model, "fit")
+    assert hasattr(model, "predict")
 
 
 def test_xgboost_creation_if_available():
     """Test XGBoost instantiation (may not be installed)."""
     try:
-        model = ModelZoo.get_model('xgboost', problem_type='classification', params={'random_state': 42})
+        model = ModelZoo.get_model(
+            "xgboost", problem_type="classification", params={"random_state": 42}
+        )
         assert model is not None
     except ImportError:
         pytest.skip("xgboost not installed")
@@ -24,57 +29,50 @@ def test_xgboost_creation_if_available():
 def test_invalid_model_name_raises_error():
     """Test that invalid model names raise errors."""
     with pytest.raises(ValueError):
-        ModelZoo.get_model('invalid_model', problem_type='classification')
+        ModelZoo.get_model("invalid_model", problem_type="classification")
 
 
 def test_mlp_custom_params_are_applied():
     """Test that MLP accepts custom parameters."""
     model = ModelZoo.get_model(
-        'mlp',
-        problem_type='classification',
-        params={
-            'hidden_layer_sizes': [64, 32],
-            'max_iter': 100,
-            'random_state': 42
-        }
+        "mlp",
+        problem_type="classification",
+        params={"hidden_layer_sizes": [64, 32], "max_iter": 100, "random_state": 42},
     )
     params = model.get_params()
-    assert params['hidden_layer_sizes'] == (64, 32)
-    assert params['max_iter'] == 100
-    
-    def test_mlp_early_stopping(self):
-        """Test MLP with early stopping enabled."""
-        model = ModelZoo.get_model(
-            'mlp',
-            problem_type='classification',
-            params={
-                'early_stopping': True,
-                'validation_fraction': 0.1,
-                'random_state': 42
-            }
-        )
-        params = model.get_params()
-        assert params['early_stopping'] is True
-        assert params['validation_fraction'] == 0.1
+    assert params["hidden_layer_sizes"] == (64, 32)
+    assert params["max_iter"] == 100
+
+
+def test_mlp_early_stopping():
+    """Test MLP with early stopping enabled."""
+    model = ModelZoo.get_model(
+        "mlp",
+        problem_type="classification",
+        params={
+            "early_stopping": True,
+            "validation_fraction": 0.1,
+            "random_state": 42,
+        },
+    )
+    params = model.get_params()
+    assert params["early_stopping"] is True
+    assert params["validation_fraction"] == 0.1
 
 
 class TestRandomForestParameters:
     """Test Random Forest parameter handling."""
-    
+
     def test_rf_with_custom_params(self):
         """Test Random Forest with custom parameters."""
         model = ModelZoo.get_model(
-            'random_forest',
-            problem_type='classification',
-            params={
-                'n_estimators': 50,
-                'max_depth': 5,
-                'random_state': 42
-            }
+            "random_forest",
+            problem_type="classification",
+            params={"n_estimators": 50, "max_depth": 5, "random_state": 42},
         )
         params = model.get_params()
-        assert params['n_estimators'] == 50
-        assert params['max_depth'] == 5
+        assert params["n_estimators"] == 50
+        assert params["max_depth"] == 5
 
 
 # Regression tests

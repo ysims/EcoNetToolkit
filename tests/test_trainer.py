@@ -1,4 +1,5 @@
 """Tests for training loop and seed handling."""
+
 import pytest
 import numpy as np
 import pandas as pd
@@ -18,12 +19,12 @@ def sample_csv():
     np.random.seed(42)
     n = 50
     data = {
-        'num1': np.random.randn(n),
-        'num2': np.random.randn(n) + 1,
-        'label': np.random.choice([0, 1], n)
+        "num1": np.random.randn(n),
+        "num2": np.random.randn(n) + 1,
+        "label": np.random.choice([0, 1], n),
     }
     df = pd.DataFrame(data)
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.csv', delete=False) as f:
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
         df.to_csv(f, index=False)
         return f.name
 
@@ -38,16 +39,18 @@ def temp_output_dir():
 
 def test_trainer_runs_and_saves_models(sample_csv, temp_output_dir):
     """Test that trainer completes and saves model files."""
-    loader = CSVDataLoader(path=sample_csv, features=['num1', 'num2'], label='label')
+    loader = CSVDataLoader(path=sample_csv, features=["num1", "num2"], label="label")
     X_train, X_val, X_test, y_train, y_val, y_test = loader.prepare()
-    
+
     cfg = {
-        'model': {'name': 'logistic', 'params': {'random_state': 42}},
-        'training': {'repetitions': 1, 'random_seed': 42},
-        'output_dir': temp_output_dir
+        "models": [{"name": "logistic", "params": {"random_state": 42}}],
+        "training": {"repetitions": 1, "random_seed": 42},
+        "output_dir": temp_output_dir,
     }
-    
-    trainer = Trainer(ModelZoo.get_model, problem_type='classification', output_dir=temp_output_dir)
+
+    trainer = Trainer(
+        ModelZoo.get_model, problem_type="classification", output_dir=temp_output_dir
+    )
     results = trainer.run(cfg, X_train, X_val, X_test, y_train, y_val, y_test)
     
     assert 'logistic' in results
@@ -57,58 +60,89 @@ def test_trainer_runs_and_saves_models(sample_csv, temp_output_dir):
     assert 'model_path' in results['logistic'][0]
     assert os.path.exists(results['logistic'][0]['model_path'])
 
+    # Results is now a dict with model_name as key
+    assert isinstance(results, dict)
+    assert "logistic" in results
+    assert len(results["logistic"]) == 1
+    assert "y_pred" in results["logistic"][0]
+    assert "seed" in results["logistic"][0]
+    assert "model_path" in results["logistic"][0]
+    assert os.path.exists(results["logistic"][0]["model_path"])
+
 
 def test_trainer_multiple_seeds_produces_multiple_results(sample_csv, temp_output_dir):
     """Test that multiple seeds produce multiple result dictionaries."""
-    loader = CSVDataLoader(path=sample_csv, features=['num1', 'num2'], label='label')
+    loader = CSVDataLoader(path=sample_csv, features=["num1", "num2"], label="label")
     X_train, X_val, X_test, y_train, y_val, y_test = loader.prepare()
-    
+
     cfg = {
-        'model': {'name': 'random_forest', 'params': {'n_estimators': 10}},
-        'training': {'repetitions': 3, 'random_seed': 0},
-        'output_dir': temp_output_dir
+        "models": [{"name": "random_forest", "params": {"n_estimators": 10}}],
+        "training": {"repetitions": 3, "random_seed": 0},
+        "output_dir": temp_output_dir,
     }
-    
-    trainer = Trainer(ModelZoo.get_model, problem_type='classification', output_dir=temp_output_dir)
+
+    trainer = Trainer(
+        ModelZoo.get_model, problem_type="classification", output_dir=temp_output_dir
+    )
     results = trainer.run(cfg, X_train, X_val, X_test, y_train, y_val, y_test)
     
     assert 'random_forest' in results
     assert len(results['random_forest']) == 3
     assert len(results['random_forest'][0]['y_pred']) == len(y_test)
 
+    # Results is now a dict with model_name as key
+    assert isinstance(results, dict)
+    assert "random_forest" in results
+    assert len(results["random_forest"]) == 3
+    assert len(results["random_forest"][0]["y_pred"]) == len(y_test)
 
 
 def test_trainer_saves_joblib_files(sample_csv, temp_output_dir):
     """Test that trained models are saved as joblib files."""
-    loader = CSVDataLoader(path=sample_csv, features=['num1', 'num2'], label='label')
+    loader = CSVDataLoader(path=sample_csv, features=["num1", "num2"], label="label")
     X_train, X_val, X_test, y_train, y_val, y_test = loader.prepare()
-    
+
     cfg = {
-        'model': {'name': 'logistic', 'params': {}},
-        'training': {'repetitions': 2, 'random_seed': 0},
-        'output_dir': temp_output_dir
+        "models": [{"name": "logistic", "params": {}}],
+        "training": {"repetitions": 2, "random_seed": 0},
+        "output_dir": temp_output_dir,
     }
-    
-    trainer = Trainer(ModelZoo.get_model, problem_type='classification', output_dir=temp_output_dir)
+
+    trainer = Trainer(
+        ModelZoo.get_model, problem_type="classification", output_dir=temp_output_dir
+    )
     results = trainer.run(cfg, X_train, X_val, X_test, y_train, y_val, y_test)
     
     for result in results['logistic']:
         assert os.path.exists(result['model_path'])
         assert result['model_path'].endswith('.joblib')
 
+    # Results is now a dict with model_name as key
+    for model_name, model_results in results.items():
+        for result in model_results:
+            assert os.path.exists(result["model_path"])
+            assert result["model_path"].endswith(".joblib")
+
 
 def test_trainer_captures_probabilities(sample_csv, temp_output_dir):
     """Test that probabilities are captured when model supports them."""
-    loader = CSVDataLoader(path=sample_csv, features=['num1', 'num2'], label='label')
+    loader = CSVDataLoader(path=sample_csv, features=["num1", "num2"], label="label")
     X_train, X_val, X_test, y_train, y_val, y_test = loader.prepare()
-    
+
     cfg = {
-        'model': {'name': 'random_forest', 'params': {'n_estimators': 10, 'random_state': 42}},
-        'training': {'repetitions': 1, 'random_seed': 0},
-        'output_dir': temp_output_dir
+        "models": [
+            {
+                "name": "random_forest",
+                "params": {"n_estimators": 10, "random_state": 42},
+            }
+        ],
+        "training": {"repetitions": 1, "random_seed": 0},
+        "output_dir": temp_output_dir,
     }
-    
-    trainer = Trainer(ModelZoo.get_model, problem_type='classification', output_dir=temp_output_dir)
+
+    trainer = Trainer(
+        ModelZoo.get_model, problem_type="classification", output_dir=temp_output_dir
+    )
     results = trainer.run(cfg, X_train, X_val, X_test, y_train, y_val, y_test)
     
     assert 'y_proba' in results['random_forest'][0]
