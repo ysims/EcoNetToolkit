@@ -18,7 +18,7 @@ args = parser.parse_args()
 cfg = load_config(args.config)
 
 # Create output directory based on config name if not specified
-if "output_dir" not in cfg.get("output", {}):
+if "dir" not in cfg.get("output", {}):
     config_name = os.path.splitext(os.path.basename(args.config))[0]
     cfg.setdefault("output", {})
     cfg["output"]["dir"] = os.path.join("outputs", config_name)
@@ -51,7 +51,6 @@ trainer = Trainer(
 results = trainer.run(cfg, X_train, X_val, X_test, y_train, y_val, y_test)
 
 # Evaluate
-problem_type = cfg.get("problem_type", "classification")
 summary = evaluate_and_report(
     results,
     y_test,

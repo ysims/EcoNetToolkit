@@ -470,7 +470,7 @@ def evaluate_and_report(
                 y_pred = last.get("y_pred")
                 residuals = y_test - y_pred
 
-                fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 4))
+                ax1, ax2 = plt.subplots(1, 2, figsize=(12, 4))
 
                 # Predicted vs Actual
                 ax1.scatter(y_test, y_pred, alpha=0.6)
