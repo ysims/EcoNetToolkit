@@ -41,6 +41,7 @@ class Trainer:
         Config keys used
         ----------------
         - models (list of model configs, each with name and params)
+        - model (single model config, for backward compatibility)
         - training.seeds (optional, list)
         - training.repetitions (if `seeds` not provided)
         - training.random_seed (base for repetitions)
@@ -92,14 +93,13 @@ class Trainer:
 
                 y_pred = model.predict(X_test)
                 y_proba = None
-                if hasattr(model, "predict_proba"):
+                # Only try to get probabilities for classification problems
+                if self.problem_type == "classification" and hasattr(model, "predict_proba"):
                     try:
                         y_proba = model.predict_proba(X_test)
                     except Exception as e:
                         print(f"    Warning: predict_proba failed: {e}")
                         y_proba = None
-                else:
-                    print(f"    Model {mname} does not support predict_proba")
 
                 # save model for this run
                 fname = os.path.join(self.output_dir, f"model_{mname}_seed{s}.joblib")

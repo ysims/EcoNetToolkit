@@ -39,10 +39,19 @@ trainer = Trainer(
 results = trainer.run(cfg, X_train, X_val, X_test, y_train, y_val, y_test)
 
 # Evaluate
-summary = evaluate_and_report(results, y_test, output_dir=cfg.get("output_dir", "outputs"))
+problem_type = cfg.get("problem_type", "classification")
+summary = evaluate_and_report(results, y_test, output_dir=cfg.get("output_dir", "outputs"), problem_type=problem_type)
 
 # Print quick summary
-accs = [r.get("accuracy") for r in summary if "accuracy" in r]
-if accs:
-    print(f"\nMean accuracy: {np.mean(accs):.3f}")
+if problem_type == "regression":
+    r2s = [r.get("r2") for r in summary if "r2" in r]
+    if r2s:
+        print(f"\nMean R²: {np.mean(r2s):.3f}")
+    rmses = [r.get("rmse") for r in summary if "rmse" in r]
+    if rmses:
+        print(f"Mean RMSE: {np.mean(rmses):.3f}")
+else:
+    accs = [r.get("accuracy") for r in summary if "accuracy" in r]
+    if accs:
+        print(f"\nMean accuracy: {np.mean(accs):.3f}")
 print(f"Done. See {cfg.get('output_dir', 'outputs')}/ for full report and plots.")

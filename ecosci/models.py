@@ -68,7 +68,8 @@ class ModelZoo:
                 return SVC(probability=True, random_state=params.get("random_state", 0), 
                           **{k: v for k, v in params.items() if k != "random_state"})
             else:
-                return SVR(**{k: v for k, v in params.items()})
+                # SVR doesn't support random_state parameter
+                return SVR(**{k: v for k, v in params.items() if k != "random_state"})
 
         if name.lower() == "xgboost":
             try:
