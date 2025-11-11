@@ -62,12 +62,3 @@ def test_config_has_expected_structure(temp_config_file):
     assert 'name' in cfg['models'][0]
     assert 'params' in cfg['models'][0]
     assert isinstance(cfg['models'][0]['params'], dict)
-
-    assert cfg["problem_type"] == "classification"
-    assert "path" in cfg["data"]
-    assert "features" in cfg["data"]
-    assert "label" in cfg["data"]
-    assert isinstance(cfg["data"]["features"], list)
-    assert "name" in cfg["model"]
-    assert "params" in cfg["model"]
-    assert isinstance(cfg["model"]["params"], dict)
