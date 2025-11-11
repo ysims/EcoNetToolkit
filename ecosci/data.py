@@ -37,6 +37,7 @@ class CSVDataLoader:
         random_state: int = 0,
         scaling: str = "standard",
         impute_strategy: str = "mean",
+        problem_type: str = "classification",
     ):
         self.path = path
         self.features = features
@@ -46,6 +47,7 @@ class CSVDataLoader:
         self.random_state = random_state
         self.scaling = scaling
         self.impute_strategy = impute_strategy
+        self.problem_type = problem_type
 
     def load(self) -> pd.DataFrame:
         """Read the CSV into a DataFrame."""
@@ -86,6 +88,31 @@ class CSVDataLoader:
 
         X = df[self.features].copy()
         y = df[self.label].copy()
+
+        # Drop rows with NaN in target variable
+        mask_target = ~y.isna()
+        if not mask_target.all():
+            n_dropped_target = (~mask_target).sum()
+            print(
+                f"Warning: Dropping {n_dropped_target} rows with NaN in target '{self.label}'"
+            )
+            X = X[mask_target]
+            y = y[mask_target]
+
+        # Drop rows with NaN in any features
+        mask_features = ~X.isna().any(axis=1)
+        if not mask_features.all():
+            n_dropped_features = (~mask_features).sum()
+            cols_with_nan = X.columns[X.isna().any()].tolist()
+            print(
+                f"Warning: Dropping {n_dropped_features} additional rows with NaN in features: {cols_with_nan}"
+            )
+            X = X[mask_features]
+            y = y[mask_features]
+
+        # Reset indices after dropping rows
+        X = X.reset_index(drop=True)
+        y = y.reset_index(drop=True)
 
         # Encode labels if they are strings/categorical (needed for XGBoost and others)
         if y.dtype == "object" or y.dtype.name == "category":
@@ -137,8 +164,12 @@ class CSVDataLoader:
         X_proc = preprocessor.fit_transform(X)
 
         # Check number of unique classes for stratification
-        n_unique = len(np.unique(y))
-        stratify_y = y if n_unique <= 20 else None
+        # Only stratify for classification problems with reasonable number of classes
+        if self.problem_type == "classification":
+            n_unique = len(np.unique(y))
+            stratify_y = y if n_unique <= 20 else None
+        else:
+            stratify_y = None
 
         # Split: first test, then validation from remaining
         X_train_val, X_test, y_train_val, y_test = train_test_split(
@@ -154,8 +185,12 @@ class CSVDataLoader:
             X_train, X_val, y_train, y_val = X_train_val, None, y_train_val, None
         else:
             val_fraction = self.val_size / (1.0 - self.test_size)
-            n_unique_train = len(np.unique(y_train_val))
-            stratify_train = y_train_val if n_unique_train <= 20 else None
+            # Only stratify for classification problems with reasonable number of classes
+            if self.problem_type == "classification":
+                n_unique_train = len(np.unique(y_train_val))
+                stratify_train = y_train_val if n_unique_train <= 20 else None
+            else:
+                stratify_train = None
             X_train, X_val, y_train, y_val = train_test_split(
                 X_train_val,
                 y_train_val,

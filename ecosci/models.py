@@ -6,6 +6,7 @@ Supported model names (set in YAML under `models[].name`):
 - svm          : support vector machine (classification or regression)
 - xgboost      : gradient boosting trees (requires `xgboost` package)
 - logistic     : logistic regression (classification baseline)
+- linear       : linear regression (regression only)
 
 All model hyperparameters come from `models[].params` in the YAML and are passed
 through to the underlying scikit-learn/xgboost classes. This keeps the code
@@ -106,7 +107,8 @@ class ModelZoo:
                     **{k: v for k, v in params.items() if k != "random_state"},
                 )
             else:
-                return SVR(**{k: v for k, v in params.items()})
+                # SVR doesn't support random_state parameter
+                return SVR(**{k: v for k, v in params.items() if k != "random_state"})
 
         if name.lower() == "xgboost":
             try:
@@ -138,6 +140,19 @@ class ModelZoo:
                     for k, v in params.items()
                     if k not in ["random_state", "max_iter"]
                 },
+            )
+
+        if name.lower() == "linear":
+            from sklearn.linear_model import LinearRegression
+
+            if problem_type == "classification":
+                raise ValueError(
+                    "Linear model is only for regression. Use 'logistic' for classification."
+                )
+
+            # LinearRegression doesn't support random_state
+            return LinearRegression(
+                **{k: v for k, v in params.items() if k != "random_state"}
             )
 
         raise ValueError(f"Unknown model name: {name}")

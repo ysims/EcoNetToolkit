@@ -6,10 +6,32 @@
 EcoNetToolkit lets you train a shallow neural network or classical models on your tabular ecological data using a simple YAML file.
 
 - CSV input with automatic preprocessing (impute, scale, encode)
-- Model zoo: MLP (shallow), Random Forest, SVM, XGBoost, Logistic Regression
+- Model zoo: MLP (shallow), Random Forest, SVM, XGBoost, Logistic Regression, Linear Regression
 - Repeated training with different seeds for stable estimates
 - Metrics, including for unbalanced datasets (balanced accuracy, PR AUC)
 - Configure the project from a single config file
+
+## Table of Contents
+
+- [EcoNetToolkit — simple models for ecological data](#econettoolkit--simple-models-for-ecological-data)
+  - [Table of Contents](#table-of-contents)
+  - [Getting Started](#getting-started)
+    - [macOS and Linux (Terminal)](#macos-and-linux-terminal)
+    - [Windows (Anaconda)](#windows-anaconda)
+    - [Configure and Run](#configure-and-run)
+      - [Outputs](#outputs)
+    - [Inspecting Saved Models](#inspecting-saved-models)
+  - [Config reference (YAML)](#config-reference-yaml)
+    - [Simple example (single model, classification)](#simple-example-single-model-classification)
+    - [Available models and key parameters](#available-models-and-key-parameters)
+    - [Notes on metrics](#notes-on-metrics)
+    - [Additional notes](#additional-notes)
+  - [Using your own data](#using-your-own-data)
+  - [Testing](#testing)
+    - [Unit Tests](#unit-tests)
+    - [End-to-End Testing](#end-to-end-testing)
+  - [Troubleshooting](#troubleshooting)
+  - [Development layout](#development-layout)
 
 ## Getting Started
 
@@ -34,6 +56,12 @@ For these steps, open a new terminal and enter the commands in the command line.
     ```
 
     To leave the venv later, run `deactivate`.
+
+If you have already followed these steps during a previous session, reactivate the virtual environment by opening a terminal in the `EcoNetToolkit` directory and run:
+
+```bash
+source .venv/bin/activate
+```
 
 ### Windows (Anaconda)
 
@@ -61,52 +89,96 @@ For these steps, open a new terminal and enter the commands in the command line.
 
 If the `conda` command isn’t recognised, make sure you’re in the Anaconda Prompt.
 
+If you have already followed these steps during a previous session, reactivate the conda environment by opening an Anaconda Prompt in the `EcoNetToolkit` directory and run:
+
+```bash
+conda activate econet
+```
+
 ### Configure and Run
 
 All commands should be run in the terminal (macOS and Linux) or the Anaconda prompt (Windows).
 
-1. Inspect and edit the example config.
+EcoNetToolkit includes two example datasets to help you get started.
 
-    `configs/example_config.yaml` shows all options with a toy dataset in `data/sample.csv`.
+**Classification Example: Palmer Penguins**
 
-2. Run:
+Predict penguin species from morphological measurements:
 
-    ```bash
-    python run.py --config configs/example_config.yaml
-    ```
+```bash
+python run.py --config configs/penguins_config.yaml
+```
 
-    Outputs are written to `outputs/` by default:
-    
-    **Single model outputs:**
-    - `report_<model>.json`: per-seed metrics for each model
-    - `confusion_matrix_<model>.png`: confusion matrix for each model
-    - `pr_curve_<model>.png`: precision-recall curve for each model
-    - `model_<name>_seed<N>.joblib`: trained models saved per seed
-    
-    **Multi-model comparison outputs:**
-    - `report_all_models.json`: combined metrics across all models
-    - `comparison_*.png`: side-by-side boxplots comparing models (accuracy, f1, etc.)
-    - `pr_curve_comparison.png`: overlaid precision-recall curves for all models
+This demonstrates multi-class classification (3 species: Adelie, Chinstrap, Gentoo) using features like bill length, flipper length, and body mass.
 
-3. Inspect saved models (optional):
+**Regression Example: Possum Morphology**
 
-    ```bash
-    python inspect_models.py outputs/model_*.joblib
-    ```
+Predict possum age from morphological measurements:
 
-    This shows model type, parameters, training iterations, and other metadata. The `.joblib` files contain serialised scikit-learn models that you can load and use for predictions:
+```bash
+python run.py --config configs/possum_config.yaml
+```
 
-    ```python
-    import joblib
-    model = joblib.load('outputs/model_mlp_seed0.joblib')
-    predictions = model.predict(X_new)  # X_new must be preprocessed the same way
-    ```
+This demonstrates continuous variable prediction using head length, skull width, and other physical measurements.
+
+#### Outputs
+
+Outputs are organised into folders based on your config file name. For example, running `configs/possum_config.yaml` creates:
+
+```
+outputs/
+└── possum_config/                    # Named after your config file
+    ├── random_forest/                # Model-specific subfolder
+    │   ├── model_random_forest_seed42.joblib
+    │   ├── model_random_forest_seed43.joblib
+    │   ├── ...
+    │   ├── report_random_forest.json
+    │   ├── confusion_matrix_random_forest.png   (classification only)
+    │   ├── pr_curve_random_forest.png           (classification only)
+    │   └── residual_plot_random_forest.png      (regression only)
+    ├── xgboost/
+    ├── mlp/
+    ├── svm/
+    ├── linear/
+    ├── report_all_models.json        # Combined results across all models
+    ├── comparison_mse.png             # Comparison plots (regression)
+    ├── comparison_r2.png
+    ├── comparison_accuracy.png        # Comparison plots (classification)
+    ├── comparison_f1.png
+    └── pr_curve_comparison.png        # Combined PR curves (classification)
+```
+
+**Model-specific outputs** (in each model subfolder):
+- `model_<name>_seed<N>.joblib`: trained models for each random seed
+- `report_<model>.json`: per-seed metrics (MSE, R², accuracy, F1, etc.)
+- `confusion_matrix_<model>.png`: confusion matrix heatmap (classification)
+- `pr_curve_<model>.png`: precision-recall curve (classification)
+- `residual_plot_<model>.png`: predicted vs actual and residuals (regression)
+
+**Multi-model comparison outputs** (in the config folder root):
+- `report_all_models.json`: combined metrics across all models and seeds
+- `comparison_*.png`: side-by-side boxplots comparing model performance
+- `pr_curve_comparison.png`: overlaid precision-recall curves (classification)
+
+### Inspecting Saved Models
+
+```bash
+python inspect_models.py outputs/possum_config/random_forest/model_*.joblib
+```
+
+This shows model type, parameters, training iterations, and other metadata. The `.joblib` files contain serialised scikit-learn models that you can load and use for predictions:
+
+```python
+import joblib
+model = joblib.load('outputs/possum_config/random_forest/model_random_forest_seed42.joblib')
+predictions = model.predict(X_new)  # X_new must be preprocessed the same way
+```
 
 ## Config reference (YAML)
 
-You can train **single or multiple models** for comparison. See `configs/example_config.yaml` for comprehensive examples of all model types and their parameters.
+You can train **single or multiple models** for comparison. See `configs/penguins_config.yaml` for comprehensive examples of all model types and their parameters.
 
-### Simple example (single model)
+### Simple example (single model, classification)
 
 ```yaml
 problem_type: classification
@@ -132,31 +204,12 @@ training:
     repetitions: 5
     random_seed: 0
 
-output_dir: outputs
+# Optional: specify output directory (defaults to outputs/<config_name>/)
+output:
+    dir: outputs/my_experiment
 ```
 
-### Multi-model comparison example
-
-Train and compare multiple models at once (see `configs/multi_model_config.yaml`):
-
-```yaml
-models:
-  - name: logistic
-    params:
-      C: 1.0
-      max_iter: 1000
-  
-  - name: random_forest
-    params:
-      n_estimators: 100
-      max_depth: null
-  
-  - name: mlp
-    params:
-      hidden_layer_sizes: [32, 16]
-      max_iter: 300
-      early_stopping: true
-```
+**Note:** If `output.dir` is not specified, outputs are automatically saved to `outputs/<config_name>/` where `<config_name>` is derived from your config file name.
 
 ### Available models and key parameters
 
@@ -166,7 +219,7 @@ models:
 - `early_stopping`: Stop when validation plateaus
 - `n_iter_no_change`: Patience - epochs to wait without improvement (default: 10)
 - `validation_fraction`: Fraction of training data for validation
-- `alpha`: L2 regularization
+- `alpha`: L2 regularisation
 - `learning_rate_init`: Initial learning rate
 
 **Random Forest**
@@ -176,7 +229,7 @@ models:
 - `max_features`: Features per split (`sqrt`, `log2`, or `null`)
 
 **SVM (Support Vector Machine)**
-- `C`: Regularization parameter
+- `C`: Regularisation parameter
 - `kernel`: `rbf`, `linear`, `poly`, or `sigmoid`
 - `gamma`: Kernel coefficient (`scale` or `auto`)
 
@@ -187,19 +240,42 @@ models:
 - `subsample`: Training instance ratio
 - `colsample_bytree`: Feature ratio
 
-**Logistic Regression**
-- `C`: Inverse regularization strength
+**Logistic Regression** (classification only)
+- `C`: Inverse regularisation strength
 - `max_iter`: Max solver iterations
 - `solver`: `lbfgs`, `liblinear`, `newton-cg`, etc.
 - `penalty`: `l1`, `l2`, `elasticnet`, or `null`
 
-Notes
-- For classification with two classes, we compute ROC-AUC and PR AUC if the
-	model can produce probabilities (e.g., MLP, RandomForest, SVM with probability=True).
-- Balanced accuracy is helpful when one class is much rarer than the other.
-- If you have many classes, macro-averaged Precision/Recall/F1 summarise across them.
+**Linear Regression** (regression only)
+- `fit_intercept`: Whether to calculate the intercept (default: `true`)
 
-## Tips for your own data
+### Notes on metrics
+
+**Classification:**
+- Primary ranking metric: **Cohen's kappa** (accounts for chance agreement, robust for imbalanced data)
+- Also reported: accuracy, balanced accuracy, precision, recall, F1, ROC-AUC, PR-AUC
+
+**Regression:**
+- Primary ranking metric: **MSE** (Mean Squared Error, lower is better)
+- Also reported: RMSE, MAE, R², MAPE
+
+### Additional notes
+
+- For classification with two classes, ROC-AUC and PR-AUC are computed if the model can produce probabilities (e.g., MLP, RandomForest, SVM with `probability=True`).
+- For multi-class problems, macro-averaged Precision/Recall/F1 summarise performance across all classes.
+- Models are ranked by Cohen's kappa (classification) or MSE (regression) to identify the best performer.
+
+## Using your own data
+
+1. Place your CSV file in the `data` folder.
+2. Make a `yaml` config file in the `configs` folder for your data. 
+
+    Use one of the existing config files (penguin for classification; possum for regression) as a basis for your data. Change the CSV path to point to your CSV file and change the features and label parameters to match the columns in your CSV file. The parameters for the different models should be tuned for your problem.
+
+    If you are unsure how to make the `yaml` file, try providing ChatGPT (or your favourite LLM) with your CSV file (or the first few rows) and link to this repository and ask it to make a config file for your data. Consider data privacy before doing this. 
+
+
+Some tips: 
 
 - Ensure your `features:` list includes only columns available in your CSV.
 - Text categories are automatically one-hot encoded.
@@ -208,16 +284,20 @@ Notes
 
 ## Testing
 
+Testing is provided for development purposes and is used by the CI system when pull requests are created.
+
+### Unit Tests
+
 Run the test suite to ensure everything works correctly:
 
 ```bash
-pytest tests/test_ecosci.py -v
+python run_tests.py all -v
 ```
 
 Or run with coverage:
 
 ```bash
-pytest tests/test_ecosci.py -v --cov=ecosci --cov-report=html
+python run_tests.py all -v --cov=ecosci --cov-report=html
 ```
 
 The tests verify:
@@ -227,9 +307,24 @@ The tests verify:
 - Full end-to-end pipeline runs without errors
 - Models produce reasonable accuracy (better than random)
 
+### End-to-End Testing
+
+Test the full pipeline with the included example datasets:
+
+**Classification (Penguins):**
+```bash
+python run.py --config configs/penguins_config.yaml
+```
+
+**Regression (Possum):**
+```bash
+python run.py --config configs/possum_config.yaml
+```
+
+These demonstrate that the toolkit works correctly for both problem types and generates appropriate metrics and visualizations.
+
 ## Troubleshooting
 
-- ImportError for xgboost: install it with `pip install xgboost` or switch to another model.
 - Shapes or column errors: double-check your `features:` and `label:` names.
 - No probabilities for some models: not all models support `predict_proba`; plots that need probabilities are skipped automatically.
 

@@ -8,6 +8,7 @@ What this does:
 """
 
 from typing import Any, Dict, List
+from tqdm import tqdm
 import numpy as np
 import random
 import joblib
@@ -48,6 +49,7 @@ class Trainer:
         Config keys used
         ----------------
         - models (list of model configs, each with name and params)
+        - model (single model config, for backward compatibility)
         - training.seeds (optional, list)
         - training.repetitions (if `seeds` not provided)
         - training.random_seed (base for repetitions)
@@ -71,14 +73,10 @@ class Trainer:
             mname = model_cfg.get("name", "mlp")
             mparams = model_cfg.get("params", {})
 
-            print(f"\n{'='*80}")
-            print(f"Training Model {model_idx+1}/{len(models_cfg)}: {mname.upper()}")
-            print(f"{'='*80}")
-
             model_results = []
 
-            for i, s in enumerate(seeds_list):
-                print(f"  Run {i+1}/{len(seeds_list)} with seed={s}")
+            # Use tqdm for progress bar
+            for s in tqdm(seeds_list, desc=f"{mname.upper()}", unit="seed"):
                 self._set_seed(s)
 
                 # ensure model has random_state where appropriate
@@ -103,17 +101,20 @@ class Trainer:
 
                 y_pred = model.predict(X_test)
                 y_proba = None
-                if hasattr(model, "predict_proba"):
+                # Only try to get probabilities for classification problems
+                if self.problem_type == "classification" and hasattr(
+                    model, "predict_proba"
+                ):
                     try:
                         y_proba = model.predict_proba(X_test)
                     except Exception as e:
                         print(f"    Warning: predict_proba failed: {e}")
                         y_proba = None
-                else:
-                    print(f"    Model {mname} does not support predict_proba")
 
-                # save model for this run
-                fname = os.path.join(self.output_dir, f"model_{mname}_seed{s}.joblib")
+                # save model for this run in model-specific subfolder
+                model_dir = os.path.join(self.output_dir, mname)
+                os.makedirs(model_dir, exist_ok=True)
+                fname = os.path.join(model_dir, f"model_{mname}_seed{s}.joblib")
                 joblib.dump(model, fname)
 
                 model_results.append(

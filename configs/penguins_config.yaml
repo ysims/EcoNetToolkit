@@ -50,8 +50,8 @@ models:
       learning_rate: 0.1
       subsample: 0.8
       colsample_bytree: 0.8
-      reg_alpha: 0.1         # L1 regularization
-      reg_lambda: 1.0        # L2 regularization
+      reg_alpha: 0.1         # L1 regularisation
+      reg_lambda: 1.0        # L2 regularisation
   
   # Logistic Regression - simple interpretable baseline
   - name: logistic
