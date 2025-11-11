@@ -201,7 +201,7 @@ models:
       early_stopping: true
 
 training:
-    repetitions: 5      # or num_seeds: 5
+    repetitions: 5
     random_seed: 0
 
 # Optional: specify output directory (defaults to outputs/<config_name>/)
