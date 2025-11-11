@@ -43,22 +43,22 @@ def test_load_config_returns_dict(temp_config_file):
 
     assert cfg is not None
     assert isinstance(cfg, dict)
-    assert 'problem_type' in cfg
-    assert 'data' in cfg
-    assert 'models' in cfg
-    assert 'training' in cfg
+    assert "problem_type" in cfg
+    assert "data" in cfg
+    assert "models" in cfg
+    assert "training" in cfg
 
 
 def test_config_has_expected_structure(temp_config_file):
     """Test that loaded config has expected nested structure."""
     cfg = load_config(temp_config_file)
-    
-    assert cfg['problem_type'] == 'classification'
-    assert 'path' in cfg['data']
-    assert 'features' in cfg['data']
-    assert 'label' in cfg['data']
-    assert isinstance(cfg['data']['features'], list)
-    assert isinstance(cfg['models'], list)
-    assert 'name' in cfg['models'][0]
-    assert 'params' in cfg['models'][0]
-    assert isinstance(cfg['models'][0]['params'], dict)
+
+    assert cfg["problem_type"] == "classification"
+    assert "path" in cfg["data"]
+    assert "features" in cfg["data"]
+    assert "label" in cfg["data"]
+    assert isinstance(cfg["data"]["features"], list)
+    assert isinstance(cfg["models"], list)
+    assert "name" in cfg["models"][0]
+    assert "params" in cfg["models"][0]
+    assert isinstance(cfg["models"][0]["params"], dict)

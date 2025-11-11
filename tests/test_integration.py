@@ -94,18 +94,21 @@ def test_full_pipeline_from_config_to_report(temp_config):
     summary = evaluate_and_report(results, y_test, cfg["output_dir"])
 
     # Check that we got results
-    assert len(results['logistic']) == cfg['training']['repetitions']
+    assert len(results["logistic"]) == cfg["training"]["repetitions"]
     assert isinstance(summary, list)
-    assert len(summary) == cfg['training']['repetitions']
+    assert len(summary) == cfg["training"]["repetitions"]
     # Check that at least one report file exists
-    assert os.path.exists(os.path.join(cfg['output_dir'], 'report_logistic.json')) or \
-           os.path.exists(os.path.join(cfg['output_dir'], 'report_all_models.json'))
-    
+    assert os.path.exists(
+        os.path.join(cfg["output_dir"], "report_logistic.json")
+    ) or os.path.exists(os.path.join(cfg["output_dir"], "report_all_models.json"))
+
     # Verify report is valid
-    report_path = os.path.join(cfg['output_dir'], 'report_logistic.json') if \
-        os.path.exists(os.path.join(cfg['output_dir'], 'report_logistic.json')) else \
-        os.path.join(cfg['output_dir'], 'report_all_models.json')
-    with open(report_path, 'r') as f:
+    report_path = (
+        os.path.join(cfg["output_dir"], "report_logistic.json")
+        if os.path.exists(os.path.join(cfg["output_dir"], "report_logistic.json"))
+        else os.path.join(cfg["output_dir"], "report_all_models.json")
+    )
+    with open(report_path, "r") as f:
         report = json.load(f)
         assert isinstance(report, list)
         assert len(report) > 0
@@ -129,16 +132,21 @@ def test_pipeline_with_categorical_features(temp_output_dir):
     X_train, X_val, X_test, y_train, y_val, y_test = loader.prepare()
 
     cfg = {
-        'problem_type': 'classification',
-        'models': [{'name': 'random_forest', 'params': {'n_estimators': 10, 'random_state': 42}}],
-        'training': {'repetitions': 1, 'random_seed': 0},
-        'output_dir': temp_output_dir
+        "problem_type": "classification",
+        "models": [
+            {
+                "name": "random_forest",
+                "params": {"n_estimators": 10, "random_state": 42},
+            }
+        ],
+        "training": {"repetitions": 1, "random_seed": 0},
+        "output_dir": temp_output_dir,
     }
 
     trainer = Trainer(
         ModelZoo.get_model, problem_type="classification", output_dir=temp_output_dir
     )
     results = trainer.run(cfg, X_train, X_val, X_test, y_train, y_val, y_test)
-    
-    assert len(results['random_forest']) == 1
-    assert len(results['random_forest'][0]['y_pred']) == len(y_test)
+
+    assert len(results["random_forest"]) == 1
+    assert len(results["random_forest"][0]["y_pred"]) == len(y_test)

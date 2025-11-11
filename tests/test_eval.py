@@ -60,7 +60,12 @@ def test_evaluate_and_report_creates_json(temp_output_dir):
     """Test that evaluation creates report.json file."""
     y_true = np.array([0, 1, 0, 1, 0, 1] * 5)
     results = [
-        {"seed": 42, "y_pred": np.array([0, 1, 0, 0, 0, 1] * 5), "y_proba": None, "model_name": "model"}
+        {
+            "seed": 42,
+            "y_pred": np.array([0, 1, 0, 0, 0, 1] * 5),
+            "y_proba": None,
+            "model_name": "model",
+        }
     ]
 
     summary = evaluate_and_report(results, y_true, temp_output_dir)
@@ -69,7 +74,7 @@ def test_evaluate_and_report_creates_json(temp_output_dir):
     assert isinstance(summary, list)
     assert len(summary) > 0
     assert "accuracy" in summary[0]
-    
+
     # Check that the individual model report was created
     assert os.path.exists(os.path.join(temp_output_dir, "report_model.json"))
     # Check that the combined report was created
@@ -90,7 +95,9 @@ def test_evaluate_and_report_multiple_seeds_computes_stats(temp_output_dir):
     for seed in [0, 1, 2]:
         np.random.seed(seed)
         y_pred = np.where(np.random.rand(30) > 0.3, y_true, 1 - y_true)
-        results.append({"seed": seed, "y_pred": y_pred, "y_proba": None, "model_name": "model"})
+        results.append(
+            {"seed": seed, "y_pred": y_pred, "y_proba": None, "model_name": "model"}
+        )
 
     summary = evaluate_and_report(results, y_true, temp_output_dir)
 
@@ -98,7 +105,7 @@ def test_evaluate_and_report_multiple_seeds_computes_stats(temp_output_dir):
     assert isinstance(summary, list)
     assert len(summary) == 3
     assert all("accuracy" in m for m in summary)
-    
+
     # Check that the individual model report was created
     assert os.path.exists(os.path.join(temp_output_dir, "report_model.json"))
     # Check that the combined report was created
