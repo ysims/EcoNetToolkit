@@ -183,9 +183,11 @@ def evaluate_and_report(
         all_summaries[model_name] = summary
         all_dfs[model_name] = pd.DataFrame(summary)
 
-    # Save individual model reports
+    # Save individual model reports in model-specific subfolders
     for model_name, summary in all_summaries.items():
-        report_path = os.path.join(output_dir, f"report_{model_name}.json")
+        model_dir = os.path.join(output_dir, model_name)
+        os.makedirs(model_dir, exist_ok=True)
+        report_path = os.path.join(model_dir, f"report_{model_name}.json")
         with open(report_path, "w") as f:
             json.dump(summary, f, indent=2)
 
@@ -310,18 +312,8 @@ def evaluate_and_report(
                 model_name = score['model']
                 model_df = all_dfs[model_name]
                 
-                # Get rank indicator
-                if rank == 1:
-                    rank_str = "🥇"
-                elif rank == 2:
-                    rank_str = "🥈"
-                elif rank == 3:
-                    rank_str = "🥉"
-                else:
-                    rank_str = f"{rank}."
-
                 row = {
-                    "Rank": rank_str,
+                    "Rank": f"{rank}.",
                     "Model": model_name.upper(),
                     primary_metric: f"{score['mean']:.4f} ± {score['std']:.4f}"
                 }
@@ -381,8 +373,10 @@ def evaluate_and_report(
                 plt.xlabel("Predicted")
                 plt.ylabel("True")
                 plt.tight_layout()
+                model_dir = os.path.join(output_dir, model_name)
+                os.makedirs(model_dir, exist_ok=True)
                 plt.savefig(
-                    os.path.join(output_dir, f"confusion_matrix_{model_name}.png")
+                    os.path.join(model_dir, f"confusion_matrix_{model_name}.png")
                 )
                 plt.close()
             except Exception as e:
@@ -416,7 +410,9 @@ def evaluate_and_report(
                     plt.title(f"Precision-Recall - {model_name.upper()} (last run)")
                     plt.legend()
                     plt.tight_layout()
-                    plt.savefig(os.path.join(output_dir, f"pr_curve_{model_name}.png"))
+                    model_dir = os.path.join(output_dir, model_name)
+                    os.makedirs(model_dir, exist_ok=True)
+                    plt.savefig(os.path.join(model_dir, f"pr_curve_{model_name}.png"))
                     plt.close()
             except Exception as e:
                 pass  # Silently skip if PR curve can't be generated
@@ -489,7 +485,9 @@ def evaluate_and_report(
                 ax2.grid(True, alpha=0.3)
 
                 plt.tight_layout()
-                plt.savefig(os.path.join(output_dir, f"residual_plot_{model_name}.png"))
+                model_dir = os.path.join(output_dir, model_name)
+                os.makedirs(model_dir, exist_ok=True)
+                plt.savefig(os.path.join(model_dir, f"residual_plot_{model_name}.png"))
                 plt.close()
             except Exception as e:
                 print(f"Warning: Could not create residual plot for {model_name}: {e}")

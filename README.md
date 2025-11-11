@@ -6,7 +6,7 @@
 EcoNetToolkit lets you train a shallow neural network or classical models on your tabular ecological data using a simple YAML file.
 
 - CSV input with automatic preprocessing (impute, scale, encode)
-- Model zoo: MLP (shallow), Random Forest, SVM, XGBoost, Logistic Regression
+- Model zoo: MLP (shallow), Random Forest, SVM, XGBoost, Logistic Regression, Linear Regression
 - Repeated training with different seeds for stable estimates
 - Metrics, including for unbalanced datasets (balanced accuracy, PR AUC)
 - Configure the project from a single config file
@@ -35,6 +35,12 @@ For these steps, open a new terminal and enter the commands in the command line.
 
     To leave the venv later, run `deactivate`.
 
+If you have already followed these steps during a previous session, reactivate the virtual environment by opening a terminal in the `EcoNetToolkit` directory and run:
+
+```bash
+source .venv/bin/activate
+```
+
 ### Windows (Anaconda)
 
 [Install Anaconda (Windows 64‑bit) from the official website](https://www.anaconda.com/download), using the default settings. After installation, open 'Anaconda Prompt' from the Start Menu. In the prompt, run the following steps.
@@ -61,11 +67,17 @@ For these steps, open a new terminal and enter the commands in the command line.
 
 If the `conda` command isn’t recognised, make sure you’re in the Anaconda Prompt.
 
+If you have already followed these steps during a previous session, reactivate the conda environment by opening an Anaconda Prompt in the `EcoNetToolkit` directory and run:
+
+```bash
+conda activate econet
+```
+
 ### Configure and Run
 
 All commands should be run in the terminal (macOS and Linux) or the Anaconda prompt (Windows).
 
-EcoNetToolkit includes two example datasets to help you get started:
+EcoNetToolkit includes two example datasets to help you get started.
 
 **Classification Example: Palmer Penguins**
 
