@@ -8,33 +8,59 @@ EcoNetToolkit lets you train a shallow neural network or classical models on you
 - Metrics, including for unbalanced datasets (balanced accuracy, PR AUC)
 - Configure the project from a single config file
 
-## Setup
+## Getting Started
 
-### macOS and Linux: Create and activate a virtual environment
+### macOS and Linux (Terminal)
 
-In your terminal, run:
+For these steps, open a new terminal and enter the commands in the command line. 
 
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-python -m pip install --upgrade pip
-pip install -r requirements.txt
-```
+1. Clone the repository and move into the directory:
 
-To leave the venv later, run `deactivate`.
+    ```bash
+    git clone https://github.com/ysims/EcoNetToolkit.git
+    cd EcoNetToolkit
+    ```
 
-### Windows: Install Anaconda and create an environment
+2. In your terminal, run:
 
-[Install Anaconda (Windows 64‑bit) from the official website](https://www.anaconda.com/download), using the default settings. After installation, open “Anaconda Prompt” from the Start Menu. In the prompt, run:
+    ```bash
+    python3 -m venv .venv
+    source .venv/bin/activate
+    python -m pip install --upgrade pip
+    pip install -r requirements.txt
+    ```
 
-```bash
-conda env create -f environment.yml
-conda activate econet
-```
+    To leave the venv later, run `deactivate`.
+
+### Windows (Anaconda)
+
+[Install Anaconda (Windows 64‑bit) from the official website](https://www.anaconda.com/download), using the default settings. After installation, open 'Anaconda Prompt' from the Start Menu. In the prompt, run the following steps.
+
+1. Get Git (this may already be installed):
+
+    ```bash
+    conda install git
+    ```
+
+2. Clone the repository and move into the directory:
+
+    ```bash
+    git clone https://github.com/ysims/EcoNetToolkit.git
+    cd EcoNetToolkit
+    ```
+
+3. Create the conda environment and activate it:
+
+    ```bash
+    conda env create -f environment.yml
+    conda activate econet
+    ```
 
 If the `conda` command isn’t recognised, make sure you’re in the Anaconda Prompt.
 
 ### Configure and Run
+
+All commands should be run in the terminal (macOS and Linux) or the Anaconda prompt (Windows).
 
 1. Inspect and edit the example config.
 
