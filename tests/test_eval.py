@@ -74,15 +74,15 @@ def test_evaluate_and_report_creates_json(temp_output_dir):
     assert isinstance(summary, list)
     assert len(summary) > 0
     assert "accuracy" in summary[0]
-    # Check that a report file was created (model-specific or combined)
+    # Check that a report file was created (model-specific subfolder or combined)
     assert os.path.exists(
-        os.path.join(temp_output_dir, "report_model.json")
+        os.path.join(temp_output_dir, "model", "report_model.json")
     ) or os.path.exists(os.path.join(temp_output_dir, "report_all_models.json"))
 
     # Check JSON is valid
     report_path = (
-        os.path.join(temp_output_dir, "report_model.json")
-        if os.path.exists(os.path.join(temp_output_dir, "report_model.json"))
+        os.path.join(temp_output_dir, "model", "report_model.json")
+        if os.path.exists(os.path.join(temp_output_dir, "model", "report_model.json"))
         else os.path.join(temp_output_dir, "report_all_models.json")
     )
     with open(report_path, "r") as f:
@@ -109,9 +109,9 @@ def test_evaluate_and_report_multiple_seeds_computes_stats(temp_output_dir):
     assert isinstance(summary, list)
     assert len(summary) == 3
     assert all("accuracy" in m for m in summary)
-    # Check that a report file was created
+    # Check that a report file was created in model-specific subfolder
     assert os.path.exists(
-        os.path.join(temp_output_dir, "report_model.json")
+        os.path.join(temp_output_dir, "model", "report_model.json")
     ) or os.path.exists(os.path.join(temp_output_dir, "report_all_models.json"))
 
 
@@ -188,7 +188,8 @@ def test_evaluate_and_report_regression(temp_output_dir):
     assert "rmse" in summary[0]
     assert "mae" in summary[0]
     assert "r2" in summary[0]
-    assert os.path.exists(os.path.join(temp_output_dir, "report_model.json"))
+    # Report is now saved in model-specific subfolder
+    assert os.path.exists(os.path.join(temp_output_dir, "model", "report_model.json"))
 
 
 def test_evaluate_and_report_regression_multiple_seeds(temp_output_dir):
@@ -209,4 +210,5 @@ def test_evaluate_and_report_regression_multiple_seeds(temp_output_dir):
     assert len(summary) == 3
     assert all("mse" in m for m in summary)
     assert all("r2" in m for m in summary)
-    assert os.path.exists(os.path.join(temp_output_dir, "report_model.json"))
+    # Report is now saved in model-specific subfolder
+    assert os.path.exists(os.path.join(temp_output_dir, "model", "report_model.json"))

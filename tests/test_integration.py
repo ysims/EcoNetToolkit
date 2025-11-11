@@ -97,15 +97,15 @@ def test_full_pipeline_from_config_to_report(temp_config):
     assert len(results["logistic"]) == cfg["training"]["repetitions"]
     assert isinstance(summary, list)
     assert len(summary) == cfg["training"]["repetitions"]
-    # Check that at least one report file exists
+    # Check that at least one report file exists (in model subfolder or combined)
     assert os.path.exists(
-        os.path.join(cfg["output_dir"], "report_logistic.json")
+        os.path.join(cfg["output_dir"], "logistic", "report_logistic.json")
     ) or os.path.exists(os.path.join(cfg["output_dir"], "report_all_models.json"))
 
     # Verify report is valid
     report_path = (
-        os.path.join(cfg["output_dir"], "report_logistic.json")
-        if os.path.exists(os.path.join(cfg["output_dir"], "report_logistic.json"))
+        os.path.join(cfg["output_dir"], "logistic", "report_logistic.json")
+        if os.path.exists(os.path.join(cfg["output_dir"], "logistic", "report_logistic.json"))
         else os.path.join(cfg["output_dir"], "report_all_models.json")
     )
     with open(report_path, "r") as f:
@@ -237,8 +237,8 @@ def test_full_pipeline_regression(temp_regression_config):
     assert "mae" in summary[0]
     assert "r2" in summary[0]
 
-    # Verify report file exists
-    assert os.path.exists(os.path.join(cfg["output_dir"], "report_random_forest.json"))
+    # Verify report file exists in model-specific subfolder
+    assert os.path.exists(os.path.join(cfg["output_dir"], "random_forest", "report_random_forest.json"))
 
 
 def test_regression_pipeline_with_mlp(regression_csv, temp_output_dir):
