@@ -1,5 +1,8 @@
 # EcoNetToolkit — simple models for ecological data
 
+[![CI](https://github.com/ysims/EcoNetToolkit/actions/workflows/ci.yml/badge.svg)](https://github.com/ysims/EcoNetToolkit/actions/workflows/ci.yml)
+[![Lint](https://github.com/ysims/EcoNetToolkit/actions/workflows/lint.yml/badge.svg)](https://github.com/ysims/EcoNetToolkit/actions/workflows/lint.yml)
+
 EcoNetToolkit lets you train a shallow neural network or classical models on your tabular ecological data using a simple YAML file.
 
 - CSV input with automatic preprocessing (impute, scale, encode)
