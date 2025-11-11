@@ -105,7 +105,9 @@ class Trainer:
                 y_pred = model.predict(X_test)
                 y_proba = None
                 # Only try to get probabilities for classification problems
-                if self.problem_type == "classification" and hasattr(model, "predict_proba"):
+                if self.problem_type == "classification" and hasattr(
+                    model, "predict_proba"
+                ):
                     try:
                         y_proba = model.predict_proba(X_test)
                     except Exception as e:

@@ -94,18 +94,21 @@ def test_full_pipeline_from_config_to_report(temp_config):
     summary = evaluate_and_report(results, y_test, cfg["output_dir"])
 
     # Check that we got results
-    assert len(results['logistic']) == cfg['training']['repetitions']
+    assert len(results["logistic"]) == cfg["training"]["repetitions"]
     assert isinstance(summary, list)
-    assert len(summary) == cfg['training']['repetitions']
+    assert len(summary) == cfg["training"]["repetitions"]
     # Check that at least one report file exists
-    assert os.path.exists(os.path.join(cfg['output_dir'], 'report_logistic.json')) or \
-           os.path.exists(os.path.join(cfg['output_dir'], 'report_all_models.json'))
-    
+    assert os.path.exists(
+        os.path.join(cfg["output_dir"], "report_logistic.json")
+    ) or os.path.exists(os.path.join(cfg["output_dir"], "report_all_models.json"))
+
     # Verify report is valid
-    report_path = os.path.join(cfg['output_dir'], 'report_logistic.json') if \
-        os.path.exists(os.path.join(cfg['output_dir'], 'report_logistic.json')) else \
-        os.path.join(cfg['output_dir'], 'report_all_models.json')
-    with open(report_path, 'r') as f:
+    report_path = (
+        os.path.join(cfg["output_dir"], "report_logistic.json")
+        if os.path.exists(os.path.join(cfg["output_dir"], "report_logistic.json"))
+        else os.path.join(cfg["output_dir"], "report_all_models.json")
+    )
+    with open(report_path, "r") as f:
         report = json.load(f)
         assert isinstance(report, list)
         assert len(report) > 0
@@ -129,19 +132,24 @@ def test_pipeline_with_categorical_features(temp_output_dir):
     X_train, X_val, X_test, y_train, y_val, y_test = loader.prepare()
 
     cfg = {
-        'problem_type': 'classification',
-        'models': [{'name': 'random_forest', 'params': {'n_estimators': 10, 'random_state': 42}}],
-        'training': {'repetitions': 1, 'random_seed': 0},
-        'output_dir': temp_output_dir
+        "problem_type": "classification",
+        "models": [
+            {
+                "name": "random_forest",
+                "params": {"n_estimators": 10, "random_state": 42},
+            }
+        ],
+        "training": {"repetitions": 1, "random_seed": 0},
+        "output_dir": temp_output_dir,
     }
 
     trainer = Trainer(
         ModelZoo.get_model, problem_type="classification", output_dir=temp_output_dir
     )
     results = trainer.run(cfg, X_train, X_val, X_test, y_train, y_val, y_test)
-    
-    assert len(results['random_forest']) == 1
-    assert len(results['random_forest'][0]['y_pred']) == len(y_test)
+
+    assert len(results["random_forest"]) == 1
+    assert len(results["random_forest"][0]["y_pred"]) == len(y_test)
 
 
 # Regression integration tests
@@ -151,12 +159,12 @@ def regression_csv():
     np.random.seed(42)
     n = 50
     data = {
-        'num1': np.random.randn(n),
-        'num2': np.random.randn(n) + 1,
-        'target': np.random.randn(n) * 10 + 50
+        "num1": np.random.randn(n),
+        "num2": np.random.randn(n) + 1,
+        "target": np.random.randn(n) * 10 + 50,
     }
     df = pd.DataFrame(data)
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.csv', delete=False) as f:
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
         df.to_csv(f, index=False)
         return f.name
 
@@ -188,7 +196,7 @@ training:
 
 output_dir: {temp_output_dir}
 """
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False) as f:
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
         f.write(config)
         return f.name
 
@@ -196,105 +204,110 @@ output_dir: {temp_output_dir}
 def test_full_pipeline_regression(temp_regression_config):
     """Test complete pipeline for regression: load config → load data → train → evaluate."""
     cfg = load_config(temp_regression_config)
-    
+
     loader = CSVDataLoader(
-        path=cfg['data']['path'],
-        features=cfg['data']['features'],
-        label=cfg['data']['label'],
-        test_size=cfg['data']['test_split'],
-        val_size=cfg['data']['val_split'],
-        scaling=cfg['data']['scaling']
+        path=cfg["data"]["path"],
+        features=cfg["data"]["features"],
+        label=cfg["data"]["label"],
+        test_size=cfg["data"]["test_split"],
+        val_size=cfg["data"]["val_split"],
+        scaling=cfg["data"]["scaling"],
     )
     X_train, X_val, X_test, y_train, y_val, y_test = loader.prepare()
-    
+
     trainer = Trainer(
         ModelZoo.get_model,
-        problem_type=cfg['problem_type'],
-        output_dir=cfg['output_dir']
+        problem_type=cfg["problem_type"],
+        output_dir=cfg["output_dir"],
     )
     results = trainer.run(cfg, X_train, X_val, X_test, y_train, y_val, y_test)
-    
-    summary = evaluate_and_report(results, y_test, cfg['output_dir'], problem_type='regression')
-    
+
+    summary = evaluate_and_report(
+        results, y_test, cfg["output_dir"], problem_type="regression"
+    )
+
     # Check that we got results
-    assert len(results['random_forest']) == cfg['training']['repetitions']
+    assert len(results["random_forest"]) == cfg["training"]["repetitions"]
     assert isinstance(summary, list)
-    assert len(summary) == cfg['training']['repetitions']
-    
+    assert len(summary) == cfg["training"]["repetitions"]
+
     # Check regression metrics are present
-    assert 'mse' in summary[0]
-    assert 'rmse' in summary[0]
-    assert 'mae' in summary[0]
-    assert 'r2' in summary[0]
-    
+    assert "mse" in summary[0]
+    assert "rmse" in summary[0]
+    assert "mae" in summary[0]
+    assert "r2" in summary[0]
+
     # Verify report file exists
-    assert os.path.exists(os.path.join(cfg['output_dir'], 'report_random_forest.json'))
+    assert os.path.exists(os.path.join(cfg["output_dir"], "report_random_forest.json"))
 
 
 def test_regression_pipeline_with_mlp(regression_csv, temp_output_dir):
     """Test regression pipeline with MLP model."""
     import warnings
     from sklearn.exceptions import ConvergenceWarning
-    
+
     loader = CSVDataLoader(
-        path=regression_csv,
-        features=['num1', 'num2'],
-        label='target'
+        path=regression_csv, features=["num1", "num2"], label="target"
     )
     X_train, X_val, X_test, y_train, y_val, y_test = loader.prepare()
-    
+
     cfg = {
-        'problem_type': 'regression',
-        'models': [{'name': 'mlp', 'params': {'hidden_layer_sizes': [16], 'max_iter': 200, 'random_state': 42}}],
-        'training': {'repetitions': 2, 'random_seed': 0},
-        'output_dir': temp_output_dir
+        "problem_type": "regression",
+        "models": [
+            {
+                "name": "mlp",
+                "params": {
+                    "hidden_layer_sizes": [16],
+                    "max_iter": 200,
+                    "random_state": 42,
+                },
+            }
+        ],
+        "training": {"repetitions": 2, "random_seed": 0},
+        "output_dir": temp_output_dir,
     }
-    
+
     trainer = Trainer(
-        ModelZoo.get_model,
-        problem_type='regression',
-        output_dir=temp_output_dir
+        ModelZoo.get_model, problem_type="regression", output_dir=temp_output_dir
     )
-    
+
     with warnings.catch_warnings():
-        warnings.filterwarnings('ignore', category=ConvergenceWarning)
+        warnings.filterwarnings("ignore", category=ConvergenceWarning)
         results = trainer.run(cfg, X_train, X_val, X_test, y_train, y_val, y_test)
-    
-    summary = evaluate_and_report(results, y_test, temp_output_dir, problem_type='regression')
-    
-    assert len(results['mlp']) == 2
-    assert all('mse' in s for s in summary)
-    assert all('r2' in s for s in summary)
-    
+
+    summary = evaluate_and_report(
+        results, y_test, temp_output_dir, problem_type="regression"
+    )
+
+    assert len(results["mlp"]) == 2
+    assert all("mse" in s for s in summary)
+    assert all("r2" in s for s in summary)
+
     # Check that predictions are continuous
-    for result in results['mlp']:
-        y_pred = result['y_pred']
+    for result in results["mlp"]:
+        y_pred = result["y_pred"]
         assert isinstance(y_pred[0], (np.floating, float))
 
 
 def test_regression_pipeline_svm(regression_csv, temp_output_dir):
     """Test regression pipeline with SVM."""
     loader = CSVDataLoader(
-        path=regression_csv,
-        features=['num1', 'num2'],
-        label='target'
+        path=regression_csv, features=["num1", "num2"], label="target"
     )
     X_train, X_val, X_test, y_train, y_val, y_test = loader.prepare()
-    
+
     cfg = {
-        'problem_type': 'regression',
-        'models': [{'name': 'svm', 'params': {'C': 1.0, 'kernel': 'rbf'}}],
-        'training': {'repetitions': 1, 'random_seed': 42},
-        'output_dir': temp_output_dir
+        "problem_type": "regression",
+        "models": [{"name": "svm", "params": {"C": 1.0, "kernel": "rbf"}}],
+        "training": {"repetitions": 1, "random_seed": 42},
+        "output_dir": temp_output_dir,
     }
-    
+
     trainer = Trainer(
-        ModelZoo.get_model,
-        problem_type='regression',
-        output_dir=temp_output_dir
+        ModelZoo.get_model, problem_type="regression", output_dir=temp_output_dir
     )
     results = trainer.run(cfg, X_train, X_val, X_test, y_train, y_val, y_test)
-    
-    assert len(results['svm']) == 1
-    assert 'y_pred' in results['svm'][0]
-    assert len(results['svm'][0]['y_pred']) == len(y_test)
+
+    assert len(results["svm"]) == 1
+    assert "y_pred" in results["svm"][0]
+    assert len(results["svm"][0]["y_pred"]) == len(y_test)

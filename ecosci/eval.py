@@ -88,14 +88,14 @@ def compute_classification_metrics(y_true, y_pred, y_proba=None) -> Dict[str, An
 
 def compute_regression_metrics(y_true, y_pred) -> Dict[str, Any]:
     """Compute regression metrics.
-    
+
     Parameters
     ----------
     y_true : array-like
         Ground truth target values.
     y_pred : array-like
         Predicted target values.
-    
+
     Returns
     -------
     Dict[str, Any]
@@ -107,13 +107,13 @@ def compute_regression_metrics(y_true, y_pred) -> Dict[str, Any]:
         - mape: Mean Absolute Percentage Error (if no zeros in y_true)
     """
     from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
-    
+
     out = {}
     out["mse"] = mean_squared_error(y_true, y_pred)
     out["rmse"] = np.sqrt(out["mse"])
     out["mae"] = mean_absolute_error(y_true, y_pred)
     out["r2"] = r2_score(y_true, y_pred)
-    
+
     # MAPE - only compute if no zeros in y_true
     try:
         if not np.any(y_true == 0):
@@ -123,11 +123,13 @@ def compute_regression_metrics(y_true, y_pred) -> Dict[str, Any]:
             out["mape"] = None
     except Exception:
         out["mape"] = None
-    
+
     return out
 
 
-def evaluate_and_report(results, y_test, output_dir: str = "outputs", problem_type: str = "classification"):
+def evaluate_and_report(
+    results, y_test, output_dir: str = "outputs", problem_type: str = "classification"
+):
     """Compute metrics across runs and save a compact report and plots.
 
     Parameters
@@ -166,7 +168,7 @@ def evaluate_and_report(results, y_test, output_dir: str = "outputs", problem_ty
                 metrics = compute_regression_metrics(y_test, y_pred)
             else:
                 metrics = compute_classification_metrics(y_test, y_pred, y_proba)
-            
+
             metrics["seed"] = seed
             metrics["model"] = model_name
             summary.append(metrics)
@@ -196,12 +198,26 @@ def evaluate_and_report(results, y_test, output_dir: str = "outputs", problem_ty
         comparison_metrics = ["mse", "rmse", "mae", "r2"]
         plot_metrics = ["mse", "rmse", "mae", "r2"]
     else:
-        display_cols = ["seed", "accuracy", "balanced_accuracy", "precision", "recall", "f1", "cohen_kappa"]
+        display_cols = [
+            "seed",
+            "accuracy",
+            "balanced_accuracy",
+            "precision",
+            "recall",
+            "f1",
+            "cohen_kappa",
+        ]
         if "roc_auc" in combined_df.columns:
             display_cols.append("roc_auc")
         if "average_precision" in combined_df.columns:
             display_cols.append("average_precision")
-        comparison_metrics = ["accuracy", "balanced_accuracy", "f1", "cohen_kappa", "roc_auc"]
+        comparison_metrics = [
+            "accuracy",
+            "balanced_accuracy",
+            "f1",
+            "cohen_kappa",
+            "roc_auc",
+        ]
         plot_metrics = ["accuracy", "balanced_accuracy", "f1", "cohen_kappa"]
 
     for model_name, df in all_dfs.items():
@@ -248,7 +264,7 @@ def evaluate_and_report(results, y_test, output_dir: str = "outputs", problem_ty
         print(f"{'='*80}\n")
 
     # Plot comparison across models
-    
+
     if len(all_dfs) > 1:
         # Multi-model comparison plots
         for m in plot_metrics:
@@ -278,6 +294,7 @@ def evaluate_and_report(results, y_test, output_dir: str = "outputs", problem_ty
         for model_name, model_results in results.items():
             try:
                 from sklearn.metrics import confusion_matrix
+
                 last = model_results[-1]
                 cm = confusion_matrix(y_test, last.get("y_pred"))
                 plt.figure(figsize=(5, 4))
@@ -286,16 +303,24 @@ def evaluate_and_report(results, y_test, output_dir: str = "outputs", problem_ty
                 plt.xlabel("Predicted")
                 plt.ylabel("True")
                 plt.tight_layout()
-                plt.savefig(os.path.join(output_dir, f"confusion_matrix_{model_name}.png"))
+                plt.savefig(
+                    os.path.join(output_dir, f"confusion_matrix_{model_name}.png")
+                )
                 plt.close()
             except Exception as e:
-                print(f"Warning: Could not create confusion matrix for {model_name}: {e}")
+                print(
+                    f"Warning: Could not create confusion matrix for {model_name}: {e}"
+                )
 
     # Precision-Recall curves for each model - classification only
     if problem_type == "classification":
         for model_name, model_results in results.items():
             try:
-                from sklearn.metrics import precision_recall_curve, average_precision_score
+                from sklearn.metrics import (
+                    precision_recall_curve,
+                    average_precision_score,
+                )
+
                 last = model_results[-1]
                 y_proba = last.get("y_proba")
                 if y_proba is not None:
@@ -321,7 +346,11 @@ def evaluate_and_report(results, y_test, output_dir: str = "outputs", problem_ty
         # Combined PR curve for model comparison (binary classification only)
         if len(results) > 1:
             try:
-                from sklearn.metrics import precision_recall_curve, average_precision_score
+                from sklearn.metrics import (
+                    precision_recall_curve,
+                    average_precision_score,
+                )
+
                 plt.figure(figsize=(7, 5))
                 for model_name, model_results in results.items():
                     last = model_results[-1]
@@ -331,10 +360,17 @@ def evaluate_and_report(results, y_test, output_dir: str = "outputs", problem_ty
                             pos_scores = y_proba[:, 1]
                         else:
                             pos_scores = y_proba
-                        precision, recall, _ = precision_recall_curve(y_test, pos_scores)
+                        precision, recall, _ = precision_recall_curve(
+                            y_test, pos_scores
+                        )
                         ap = average_precision_score(y_test, pos_scores)
-                        plt.plot(recall, precision, label=f"{model_name} (AP={ap:.3f})", linewidth=2)
-                
+                        plt.plot(
+                            recall,
+                            precision,
+                            label=f"{model_name} (AP={ap:.3f})",
+                            linewidth=2,
+                        )
+
                 plt.xlabel("Recall")
                 plt.ylabel("Precision")
                 plt.title("Precision-Recall Comparison (last run)")
@@ -345,7 +381,7 @@ def evaluate_and_report(results, y_test, output_dir: str = "outputs", problem_ty
                 plt.close()
             except Exception as e:
                 pass  # Silently skip if comparison can't be generated
-    
+
     # Residual plots for regression
     elif problem_type == "regression":
         for model_name, model_results in results.items():
@@ -353,27 +389,27 @@ def evaluate_and_report(results, y_test, output_dir: str = "outputs", problem_ty
                 last = model_results[-1]
                 y_pred = last.get("y_pred")
                 residuals = y_test - y_pred
-                
+
                 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 4))
-                
+
                 # Predicted vs Actual
                 ax1.scatter(y_test, y_pred, alpha=0.6)
                 min_val = min(y_test.min(), y_pred.min())
                 max_val = max(y_test.max(), y_pred.max())
-                ax1.plot([min_val, max_val], [min_val, max_val], 'r--', lw=2)
+                ax1.plot([min_val, max_val], [min_val, max_val], "r--", lw=2)
                 ax1.set_xlabel("Actual")
                 ax1.set_ylabel("Predicted")
                 ax1.set_title(f"Predicted vs Actual - {model_name.upper()}")
                 ax1.grid(True, alpha=0.3)
-                
+
                 # Residual plot
                 ax2.scatter(y_pred, residuals, alpha=0.6)
-                ax2.axhline(y=0, color='r', linestyle='--', lw=2)
+                ax2.axhline(y=0, color="r", linestyle="--", lw=2)
                 ax2.set_xlabel("Predicted")
                 ax2.set_ylabel("Residuals")
                 ax2.set_title(f"Residual Plot - {model_name.upper()}")
                 ax2.grid(True, alpha=0.3)
-                
+
                 plt.tight_layout()
                 plt.savefig(os.path.join(output_dir, f"residual_plot_{model_name}.png"))
                 plt.close()

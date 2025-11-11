@@ -40,7 +40,12 @@ results = trainer.run(cfg, X_train, X_val, X_test, y_train, y_val, y_test)
 
 # Evaluate
 problem_type = cfg.get("problem_type", "classification")
-summary = evaluate_and_report(results, y_test, output_dir=cfg.get("output_dir", "outputs"), problem_type=problem_type)
+summary = evaluate_and_report(
+    results,
+    y_test,
+    output_dir=cfg.get("output_dir", "outputs"),
+    problem_type=problem_type,
+)
 
 # Print quick summary
 if problem_type == "regression":
