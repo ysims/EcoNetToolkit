@@ -84,11 +84,7 @@ models:
 # Training configuration
 training:
   repetitions: 10            # Train each model 10 times with different seeds
-  verbose: true            # Print progress
 
 # Output configuration
 output:
   dir: outputs             # Where to save results
-  save_models: true        # Save trained models
-  save_plots: true         # Generate evaluation plots
-  save_reports: true       # Save JSON reports with metrics

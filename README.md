@@ -248,7 +248,6 @@ output:
 
 **Linear Regression** (regression only)
 - `fit_intercept`: Whether to calculate the intercept (default: `true`)
-- `normalize`: Whether to normalize features (deprecated, use `scaling` in data config)
 
 ### Notes on metrics
 
