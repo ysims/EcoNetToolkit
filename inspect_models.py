@@ -18,7 +18,7 @@ def inspect_model(path):
         "file": os.path.basename(path),
         "type": type(model).__name__,
     }
-    
+
     # Extract model-specific info
     if hasattr(model, "n_iter_"):
         info["n_iter"] = model.n_iter_
@@ -30,13 +30,13 @@ def inspect_model(path):
         info["n_classes"] = len(model.classes_)
     if hasattr(model, "best_loss_") and model.best_loss_ is not None:
         info["best_loss"] = f"{model.best_loss_:.4f}"
-    
+
     # For tree-based models
     if hasattr(model, "n_estimators"):
         info["n_estimators"] = model.n_estimators
     if hasattr(model, "max_depth") and model.max_depth is not None:
         info["max_depth"] = model.max_depth
-    
+
     return info
 
 
@@ -57,10 +57,10 @@ for path in args.models:
 
 if results:
     df = pd.DataFrame(results)
-    print("\n" + "="*80)
+    print("\n" + "=" * 80)
     print("MODEL SUMMARY")
-    print("="*80)
+    print("=" * 80)
     print(df.to_string(index=False))
-    print("="*80 + "\n")
+    print("=" * 80 + "\n")
 else:
     print("No models loaded.")
