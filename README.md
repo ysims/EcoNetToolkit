@@ -11,6 +11,28 @@ EcoNetToolkit lets you train a shallow neural network or classical models on you
 - Metrics, including for unbalanced datasets (balanced accuracy, PR AUC)
 - Configure the project from a single config file
 
+## Table of Contents
+
+- [EcoNetToolkit — simple models for ecological data](#econettoolkit--simple-models-for-ecological-data)
+  - [Table of Contents](#table-of-contents)
+  - [Getting Started](#getting-started)
+    - [macOS and Linux (Terminal)](#macos-and-linux-terminal)
+    - [Windows (Anaconda)](#windows-anaconda)
+    - [Configure and Run](#configure-and-run)
+      - [Outputs](#outputs)
+    - [Inspecting Saved Models](#inspecting-saved-models)
+  - [Config reference (YAML)](#config-reference-yaml)
+    - [Simple example (single model, classification)](#simple-example-single-model-classification)
+    - [Available models and key parameters](#available-models-and-key-parameters)
+    - [Notes on metrics](#notes-on-metrics)
+    - [Additional notes](#additional-notes)
+  - [Using your own data](#using-your-own-data)
+  - [Testing](#testing)
+    - [Unit Tests](#unit-tests)
+    - [End-to-End Testing](#end-to-end-testing)
+  - [Troubleshooting](#troubleshooting)
+  - [Development layout](#development-layout)
+
 ## Getting Started
 
 ### macOS and Linux (Terminal)
