@@ -271,7 +271,7 @@ def evaluate_and_report(
         comparison_df = pd.DataFrame(comparison_data)
         print(comparison_df.to_string(index=False))
         print(f"{'='*80}\n")
-        
+
         # Determine best and second-best models
         # For regression: lower MSE is better
         # Select primary metric based on problem type
@@ -283,51 +283,57 @@ def evaluate_and_report(
         else:
             primary_metric = "cohen_kappa"
             lower_is_better = False
-        
+
         # Calculate mean primary metric for each model
         model_scores = []
         for model_name, df in all_dfs.items():
             if primary_metric in df.columns:
                 vals = df[primary_metric].dropna()
                 if len(vals) > 0:
-                    model_scores.append({
-                        'model': model_name,
-                        'mean': vals.mean(),
-                        'std': safe_std(vals)
-                    })
-        
+                    model_scores.append(
+                        {
+                            "model": model_name,
+                            "mean": vals.mean(),
+                            "std": safe_std(vals),
+                        }
+                    )
+
         if len(model_scores) > 0:
             # Sort by primary metric
-            model_scores.sort(key=lambda x: x['mean'], reverse=not lower_is_better)
-            
+            model_scores.sort(key=lambda x: x["mean"], reverse=not lower_is_better)
+
             print(f"\n{'='*80}")
             print("MODEL RANKING")
             print(f"{'='*80}")
-            print(f"Ranked by: {primary_metric.replace('_', ' ').upper()} ({'Lower is better' if lower_is_better else 'Higher is better'})")
+            print(
+                f"Ranked by: {primary_metric.replace('_', ' ').upper()} ({'Lower is better' if lower_is_better else 'Higher is better'})"
+            )
             print(f"{'-'*80}")
-            
+
             # Create ranking table with all metrics
             ranking_data = []
             for rank, score in enumerate(model_scores, 1):
-                model_name = score['model']
+                model_name = score["model"]
                 model_df = all_dfs[model_name]
-                
+
                 row = {
                     "Rank": f"{rank}.",
                     "Model": model_name.upper(),
-                    primary_metric: f"{score['mean']:.4f} ± {score['std']:.4f}"
+                    primary_metric: f"{score['mean']:.4f} ± {score['std']:.4f}",
                 }
-                
+
                 # Add other metrics
-                metric_cols = [c for c in display_cols if c != "seed" and c != primary_metric]
+                metric_cols = [
+                    c for c in display_cols if c != "seed" and c != primary_metric
+                ]
                 for col in metric_cols:
                     if col in model_df.columns:
                         vals = model_df[col].dropna()
                         if len(vals) > 0:
                             row[col] = f"{vals.mean():.4f} ± {safe_std(vals):.4f}"
-                
+
                 ranking_data.append(row)
-            
+
             # Print ranking table
             ranking_df = pd.DataFrame(ranking_data)
             print(ranking_df.to_string(index=False))

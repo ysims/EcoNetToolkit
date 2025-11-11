@@ -146,9 +146,13 @@ class ModelZoo:
             from sklearn.linear_model import LinearRegression
 
             if problem_type == "classification":
-                raise ValueError("Linear model is only for regression. Use 'logistic' for classification.")
-            
+                raise ValueError(
+                    "Linear model is only for regression. Use 'logistic' for classification."
+                )
+
             # LinearRegression doesn't support random_state
-            return LinearRegression(**{k: v for k, v in params.items() if k != "random_state"})
+            return LinearRegression(
+                **{k: v for k, v in params.items() if k != "random_state"}
+            )
 
         raise ValueError(f"Unknown model name: {name}")

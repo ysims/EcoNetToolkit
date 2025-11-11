@@ -93,19 +93,23 @@ class CSVDataLoader:
         mask_target = ~y.isna()
         if not mask_target.all():
             n_dropped_target = (~mask_target).sum()
-            print(f"Warning: Dropping {n_dropped_target} rows with NaN in target '{self.label}'")
+            print(
+                f"Warning: Dropping {n_dropped_target} rows with NaN in target '{self.label}'"
+            )
             X = X[mask_target]
             y = y[mask_target]
-        
+
         # Drop rows with NaN in any features
         mask_features = ~X.isna().any(axis=1)
         if not mask_features.all():
             n_dropped_features = (~mask_features).sum()
             cols_with_nan = X.columns[X.isna().any()].tolist()
-            print(f"Warning: Dropping {n_dropped_features} additional rows with NaN in features: {cols_with_nan}")
+            print(
+                f"Warning: Dropping {n_dropped_features} additional rows with NaN in features: {cols_with_nan}"
+            )
             X = X[mask_features]
             y = y[mask_features]
-        
+
         # Reset indices after dropping rows
         X = X.reset_index(drop=True)
         y = y.reset_index(drop=True)

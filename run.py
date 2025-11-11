@@ -19,6 +19,7 @@ cfg = load_config(args.config)
 # Create output directory based on config name if not specified
 if "output_dir" not in cfg.get("output", {}):
     import os
+
     config_name = os.path.splitext(os.path.basename(args.config))[0]
     cfg.setdefault("output", {})
     cfg["output"]["dir"] = os.path.join("outputs", config_name)
