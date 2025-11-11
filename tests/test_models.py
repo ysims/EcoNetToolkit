@@ -43,20 +43,20 @@ def test_mlp_custom_params_are_applied():
     assert params["hidden_layer_sizes"] == (64, 32)
     assert params["max_iter"] == 100
 
-    def test_mlp_early_stopping(self):
-        """Test MLP with early stopping enabled."""
-        model = ModelZoo.get_model(
-            "mlp",
-            problem_type="classification",
-            params={
-                "early_stopping": True,
-                "validation_fraction": 0.1,
-                "random_state": 42,
-            },
-        )
-        params = model.get_params()
-        assert params["early_stopping"] is True
-        assert params["validation_fraction"] == 0.1
+def test_mlp_early_stopping():
+    """Test MLP with early stopping enabled."""
+    model = ModelZoo.get_model(
+        "mlp",
+        problem_type="classification",
+        params={
+            "early_stopping": True,
+            "validation_fraction": 0.1,
+            "random_state": 42,
+        },
+    )
+    params = model.get_params()
+    assert params["early_stopping"] is True
+    assert params["validation_fraction"] == 0.1
 
 
 class TestRandomForestParameters:
