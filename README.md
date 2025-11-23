@@ -7,8 +7,10 @@ EcoNetToolkit lets you train a shallow neural network or classical models on you
 
 - CSV input with automatic preprocessing (impute, scale, encode)
 - Model zoo: MLP (shallow), Random Forest, SVM, XGBoost, Logistic Regression, Linear Regression
+- **Hyperparameter tuning** with grouped train/val/test splits (prevents data leakage)
 - Repeated training with different seeds for stable estimates
 - Metrics, including for unbalanced datasets (balanced accuracy, PR AUC)
+- K-fold cross-validation with spatial/temporal grouping
 - Configure the project from a single config file
 
 ## Table of Contents
@@ -26,6 +28,7 @@ EcoNetToolkit lets you train a shallow neural network or classical models on you
     - [Available models and key parameters](#available-models-and-key-parameters)
     - [Notes on metrics](#notes-on-metrics)
     - [Additional notes](#additional-notes)
+  - [Hyperparameter Tuning](#hyperparameter-tuning)
   - [Using your own data](#using-your-own-data)
   - [Testing](#testing)
     - [Unit Tests](#unit-tests)
@@ -211,6 +214,60 @@ output:
 
 **Note:** If `output.dir` is not specified, outputs are automatically saved to `outputs/<config_name>/` where `<config_name>` is derived from your config file name.
 
+### Multi-output (multi-target) prediction
+
+EcoNetToolkit supports predicting **multiple target variables simultaneously** (multi-output learning). This is useful when you want to predict several related outcomes from the same features.
+
+**Example: Multi-output classification**
+
+```yaml
+problem_type: classification
+
+data:
+    path: data/palmerpenguins_extended.csv
+    features: [bill_length_mm, bill_depth_mm, flipper_length_mm, body_mass_g, island]
+    labels: [species, sex, life_stage]  # Predict 3 labels simultaneously
+    test_size: 0.2
+    val_size: 0.15
+    scaling: standard
+
+models:
+  - name: random_forest
+    params:
+      n_estimators: 100
+      max_depth: 15
+
+training:
+    repetitions: 5
+```
+
+**Example: Multi-output regression**
+
+```yaml
+problem_type: regression
+
+data:
+    path: data/possum.csv
+    features: [hdlngth, skullw, totlngth, taill]
+    labels: [age, chest, belly]  # Predict 3 continuous values
+    test_size: 0.2
+    scaling: standard
+
+models:
+  - name: mlp
+    params:
+      hidden_layer_sizes: [32, 16]
+      max_iter: 500
+```
+
+**Key points:**
+- Use `labels:` (list) instead of `label:` (single string) to specify multiple targets
+- For backward compatibility, `label:` still works for single-output prediction
+- Multi-output metrics report mean and standard deviation across all outputs
+- Some models support multi-output natively (Random Forest, MLP Regressor), others are wrapped automatically (Logistic Regression, SVM, Linear Regression)
+
+See `configs/penguins_multilabel.yaml` and `configs/possum_multilabel.yaml` for complete examples.
+
 ### Available models and key parameters
 
 **MLP (Multi-Layer Perceptron)**
@@ -264,6 +321,70 @@ output:
 - For classification with two classes, ROC-AUC and PR-AUC are computed if the model can produce probabilities (e.g., MLP, RandomForest, SVM with `probability=True`).
 - For multi-class problems, macro-averaged Precision/Recall/F1 summarise performance across all classes.
 - Models are ranked by Cohen's kappa (classification) or MSE (regression) to identify the best performer.
+
+## Hyperparameter Tuning
+
+EcoNetToolkit includes automated hyperparameter tuning with proper train/validation/test splits to prevent data leakage. This is especially important for ecological data with spatial or temporal structure.
+
+**Quick Example:**
+
+```bash
+python run.py --config configs/mangrove_tuning.yaml
+```
+
+**Key Features:**
+
+- **Grouped splits**: Assign groups (e.g., patches, sites, years) to train/val/test sets
+- **Automatic search**: GridSearchCV or RandomizedSearchCV to find optimal hyperparameters
+- **Multiple seeds**: Run with different random seeds for stable results
+- **Proper evaluation**: Tune on train+val, evaluate on held-out test set
+
+**Example Config:**
+
+```yaml
+problem_type: regression
+
+data:
+  path: data/mangrove.csv
+  cv_group_column: patch_id    # Group by spatial patches
+  n_train_groups: 4            # 4 patches for training
+  n_val_groups: 2              # 2 patches for validation (tuning)
+  n_test_groups: 2             # 2 patches for test (final eval)
+  
+  labels: [NDVI]
+  features: [pu_x, pu_y, temperature, ...]
+  scaling: standard
+
+# Enable hyperparameter tuning
+tuning:
+  enabled: true
+  search_method: random       # "random" or "grid"
+  n_iter: 30                  # Number of parameter combinations
+  cv_folds: 3                 # CV folds during tuning
+  scoring: neg_mean_squared_error
+  n_jobs: -1                  # Use all CPU cores
+
+# Define models and search spaces
+models:
+  - name: random_forest
+    param_space:
+      n_estimators: [100, 200, 500, 1000]
+      max_depth: [10, 20, 30, 50]
+      min_samples_split: [2, 5, 10]
+      max_features: [sqrt, log2, 0.5]
+
+training:
+  repetitions: 5
+  random_seed: 42
+```
+
+**Outputs include:**
+- Best hyperparameters for each seed
+- Validation and test set performance
+- Comparison plots
+- Trained models with optimal parameters
+
+For detailed information, see [docs/HYPERPARAMETER_TUNING.md](docs/HYPERPARAMETER_TUNING.md)
 
 ## Using your own data
 

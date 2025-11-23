@@ -19,7 +19,10 @@ from typing import Any, Dict
 class ModelZoo:
     @staticmethod
     def get_model(
-        name: str, problem_type: str = "classification", params: Dict[str, Any] = None
+        name: str, 
+        problem_type: str = "classification", 
+        params: Dict[str, Any] = None,
+        n_outputs: int = 1
     ):
         """Return a model instance by name using params dict.
 
@@ -31,6 +34,8 @@ class ModelZoo:
             "classification" or "regression". Determines which estimator is used.
         params : Dict[str, Any]
             Hyperparameters forwarded to the underlying estimator.
+        n_outputs : int
+            Number of output targets. If > 1, wraps the model in MultiOutput wrapper.
         """
         params = params or {}
 
@@ -39,13 +44,14 @@ class ModelZoo:
 
             if problem_type == "classification":
                 # shallow MLP: single hidden layer default
-                return MLPClassifier(
+                base_model = MLPClassifier(
                     hidden_layer_sizes=tuple(params.get("hidden_layer_sizes", (32,))),
                     max_iter=params.get("max_iter", 200),
                     early_stopping=params.get("early_stopping", True),
                     validation_fraction=params.get("validation_fraction", 0.1),
                     n_iter_no_change=params.get("n_iter_no_change", 10),
                     random_state=params.get("random_state", 0),
+                    verbose=params.get("verbose", False),  # Disable verbose output by default
                     **{
                         k: v
                         for k, v in params.items()
@@ -57,10 +63,13 @@ class ModelZoo:
                             "validation_fraction",
                             "n_iter_no_change",
                             "random_state",
+                            "verbose",
                         ]
                     },
                 )
+                return ModelZoo.wrap_for_multioutput(base_model, problem_type, n_outputs)
             else:
+                # MLPRegressor natively supports multi-output
                 return MLPRegressor(
                     hidden_layer_sizes=tuple(params.get("hidden_layer_sizes", (32,))),
                     max_iter=params.get("max_iter", 200),
@@ -68,6 +77,7 @@ class ModelZoo:
                     validation_fraction=params.get("validation_fraction", 0.1),
                     n_iter_no_change=params.get("n_iter_no_change", 10),
                     random_state=params.get("random_state", 0),
+                    verbose=params.get("verbose", False),  # Disable verbose output by default
                     **{
                         k: v
                         for k, v in params.items()
@@ -79,6 +89,7 @@ class ModelZoo:
                             "validation_fraction",
                             "n_iter_no_change",
                             "random_state",
+                            "verbose",
                         ]
                     },
                 )
@@ -86,6 +97,7 @@ class ModelZoo:
         if name.lower() == "random_forest":
             from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 
+            # Random Forest natively supports multi-output
             if problem_type == "classification":
                 return RandomForestClassifier(
                     random_state=params.get("random_state", 0),
@@ -101,14 +113,16 @@ class ModelZoo:
             from sklearn.svm import SVC, SVR
 
             if problem_type == "classification":
-                return SVC(
+                base_model = SVC(
                     probability=True,
                     random_state=params.get("random_state", 0),
                     **{k: v for k, v in params.items() if k != "random_state"},
                 )
+                return ModelZoo.wrap_for_multioutput(base_model, problem_type, n_outputs)
             else:
                 # SVR doesn't support random_state parameter
-                return SVR(**{k: v for k, v in params.items() if k != "random_state"})
+                base_model = SVR(**{k: v for k, v in params.items() if k != "random_state"})
+                return ModelZoo.wrap_for_multioutput(base_model, problem_type, n_outputs)
 
         if name.lower() == "xgboost":
             try:
@@ -125,14 +139,16 @@ class ModelZoo:
                 params_filtered = {
                     k: v for k, v in params.items() if k != "eval_metric"
                 }
-                return XGBClassifier(eval_metric=eval_metric, **params_filtered)
+                base_model = XGBClassifier(eval_metric=eval_metric, **params_filtered)
+                return ModelZoo.wrap_for_multioutput(base_model, problem_type, n_outputs)
             else:
-                return XGBRegressor(**params)
+                base_model = XGBRegressor(**params)
+                return ModelZoo.wrap_for_multioutput(base_model, problem_type, n_outputs)
 
         if name.lower() == "logistic":
             from sklearn.linear_model import LogisticRegression
 
-            return LogisticRegression(
+            base_model = LogisticRegression(
                 random_state=params.get("random_state", 0),
                 max_iter=params.get("max_iter", 1000),
                 **{
@@ -141,18 +157,75 @@ class ModelZoo:
                     if k not in ["random_state", "max_iter"]
                 },
             )
+            return ModelZoo.wrap_for_multioutput(base_model, problem_type, n_outputs)
 
         if name.lower() == "linear":
-            from sklearn.linear_model import LinearRegression
+            from sklearn.linear_model import LinearRegression, Ridge
 
             if problem_type == "classification":
                 raise ValueError(
                     "Linear model is only for regression. Use 'logistic' for classification."
                 )
 
-            # LinearRegression doesn't support random_state
-            return LinearRegression(
-                **{k: v for k, v in params.items() if k != "random_state"}
-            )
+            # If alpha is specified, use Ridge regression (supports regularization)
+            # Otherwise use plain LinearRegression
+            if "alpha" in params:
+                base_model = Ridge(
+                    random_state=params.get("random_state", 0),
+                    **{k: v for k, v in params.items() if k != "random_state"}
+                )
+            else:
+                # LinearRegression doesn't support random_state or alpha
+                base_model = LinearRegression(
+                    **{k: v for k, v in params.items() if k not in ["random_state", "alpha"]}
+                )
+            
+            # Wrap in MultiOutputRegressor if needed
+            if n_outputs > 1:
+                from sklearn.multioutput import MultiOutputRegressor
+                return MultiOutputRegressor(base_model)
+            return base_model
 
         raise ValueError(f"Unknown model name: {name}")
+    
+    @staticmethod
+    def wrap_for_multioutput(model, problem_type: str, n_outputs: int):
+        """Wrap a model for multi-output prediction if necessary.
+        
+        Parameters
+        ----------
+        model : estimator
+            Base sklearn-compatible model.
+        problem_type : str
+            "classification" or "regression".
+        n_outputs : int
+            Number of output targets.
+            
+        Returns
+        -------
+        estimator
+            The model, wrapped in MultiOutput if n_outputs > 1.
+        """
+        if n_outputs <= 1:
+            return model
+            
+        # Some models natively support multi-output
+        native_multioutput = [
+            'RandomForestClassifier', 'RandomForestRegressor',
+            'ExtraTreesClassifier', 'ExtraTreesRegressor',
+            'DecisionTreeClassifier', 'DecisionTreeRegressor',
+            'KNeighborsClassifier', 'KNeighborsRegressor',
+            'MLPRegressor',  # MLP Regressor supports multi-output
+        ]
+        
+        model_class = model.__class__.__name__
+        if model_class in native_multioutput:
+            return model
+            
+        # Wrap in MultiOutput wrapper
+        if problem_type == "classification":
+            from sklearn.multioutput import MultiOutputClassifier
+            return MultiOutputClassifier(model)
+        else:
+            from sklearn.multioutput import MultiOutputRegressor
+            return MultiOutputRegressor(model)

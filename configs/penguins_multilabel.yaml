@@ -1,0 +1,64 @@
+# Multi-output classification example using Palmer Penguins dataset
+# This config demonstrates predicting multiple labels simultaneously
+
+problem_type: classification   # Multi-output classification
+
+data:
+  path: data/palmerpenguins_extended.csv
+  
+  # Features: Physical measurements and contextual variables
+  features: 
+    - bill_length_mm       # Continuous: length of bill in millimeters
+    - bill_depth_mm        # Continuous: depth of bill in millimeters
+    - flipper_length_mm    # Continuous: flipper length in millimeters
+    - body_mass_g          # Continuous: body mass in grams
+    - island               # Categorical: Biscoe, Dream, Torgensen
+    - year                 # Numeric: 2021-2025
+  
+  # Multiple target variables to predict simultaneously
+  labels:
+    - species              # Adelie, Chinstrap, Gentoo (3 classes)
+    - sex                  # male, female (2 classes)
+    - life_stage           # adult, juvenile, chick (3 classes)
+  
+  test_size: 0.2           # 20% for testing
+  val_size: 0.15           # 15% of remaining for validation
+  random_state: 42         # For reproducibility
+  scaling: standard        # Standardize features
+  impute_strategy: mean    # Imputation for missing values
+
+# Train multiple models for comparison
+models:
+  # Random Forest - natively supports multi-output
+  - name: random_forest
+    params:
+      n_estimators: 100
+      max_depth: 15
+      min_samples_split: 5
+      min_samples_leaf: 2
+      max_features: sqrt
+      class_weight: balanced
+  
+  # MLP - good for multi-output tasks
+  - name: mlp
+    params:
+      hidden_layer_sizes: [64, 32]
+      max_iter: 300
+      early_stopping: true
+      validation_fraction: 0.1
+      n_iter_no_change: 15
+  
+  # Logistic Regression - wrapped with MultiOutputClassifier
+  - name: logistic
+    params:
+      max_iter: 1000
+      class_weight: balanced
+
+# Training configuration
+training:
+  repetitions: 5           # Train 5 times with different seeds
+  random_seed: 0
+
+# Output configuration
+output:
+  dir: outputs/penguins_multilabel
