@@ -80,3 +80,77 @@ def test_random_state_makes_splits_reproducible(sample_csv):
 
     np.testing.assert_array_equal(X_train1, X_train2)
     np.testing.assert_array_equal(y_train1, y_train2)
+
+
+@pytest.fixture
+def multi_label_csv():
+    """Create a temporary CSV with multiple labels."""
+    data = pd.DataFrame(
+        {
+            "num1": [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0] * 5,
+            "num2": [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0] * 5,
+            "label1": [0, 1, 0, 1, 0, 1, 0, 1, 0, 1] * 5,
+            "label2": [1, 0, 1, 0, 1, 0, 1, 0, 1, 0] * 5,
+        }
+    )
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
+        data.to_csv(f, index=False)
+        return f.name
+
+
+def test_multi_label_loader_creates_splits(multi_label_csv):
+    """Test that data loader handles multiple labels."""
+    loader = CSVDataLoader(
+        path=multi_label_csv,
+        features=["num1", "num2"],
+        labels=["label1", "label2"],
+        test_size=0.2,
+        val_size=0.2,
+        random_state=42,
+    )
+    X_train, X_val, X_test, y_train, y_val, y_test = loader.prepare()
+
+    # Verify we got all the data split properly
+    total_samples = len(y_train) + len(y_val) + len(y_test)
+    assert total_samples == 50
+    
+    # Check that y has 2 outputs
+    assert y_train.shape[1] == 2
+    assert y_test.shape[1] == 2
+    assert y_val.shape[1] == 2
+
+
+def test_single_label_via_labels_param(sample_csv):
+    """Test that passing single label via labels param works."""
+    loader = CSVDataLoader(
+        path=sample_csv,
+        features=["num1", "num2"],
+        labels=["label"],  # Single label as list
+        test_size=0.2,
+        val_size=0.2,
+        random_state=42,
+    )
+    X_train, X_val, X_test, y_train, y_val, y_test = loader.prepare()
+
+    # Should work like single label (1D array)
+    assert len(y_train.shape) == 1 or (len(y_train.shape) == 2 and y_train.shape[1] == 1)
+    assert len(X_train) == len(y_train)
+
+
+def test_multi_label_regression(multi_label_csv):
+    """Test multi-label with regression problem type."""
+    loader = CSVDataLoader(
+        path=multi_label_csv,
+        features=["num1", "num2"],
+        labels=["label1", "label2"],
+        test_size=0.2,
+        val_size=0.2,
+        random_state=42,
+        problem_type="regression",
+    )
+    X_train, X_val, X_test, y_train, y_val, y_test = loader.prepare()
+
+    # Verify shape
+    assert y_train.shape[1] == 2
+    assert not np.isnan(X_train).any()
+    assert not np.isnan(y_train).any()
