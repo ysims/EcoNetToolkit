@@ -415,12 +415,13 @@ class HyperparameterTuner:
                 base_model = Ridge(random_state=self.random_state)
             else:
                 # Use LogisticRegression with C and penalty tuning
-                param_space = {
-                    'C': [0.001, 0.01, 0.1, 1.0, 10.0, 100.0],
-                    'penalty': ['l1', 'l2', 'elasticnet'],
-                    'solver': ['saga'],  # saga supports all penalties
-                    'l1_ratio': [0.1, 0.5, 0.9],  # for elasticnet
-                }
+                # Separate parameter spaces for different penalties to avoid invalid combinations
+                c_values = [0.001, 0.01, 0.1, 1.0, 10.0, 100.0]
+                param_space = [
+                    {'C': c_values, 'penalty': ['l1'], 'solver': ['saga']},
+                    {'C': c_values, 'penalty': ['l2'], 'solver': ['saga']},
+                    {'C': c_values, 'penalty': ['elasticnet'], 'solver': ['saga'], 'l1_ratio': [0.1, 0.5, 0.9]},
+                ]
                 base_model = LogisticRegression(
                     random_state=self.random_state,
                     max_iter=1000
