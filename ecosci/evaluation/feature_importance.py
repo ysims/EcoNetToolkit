@@ -10,7 +10,6 @@ import os
 import numpy as np
 import pandas as pd
 
-from .metrics import safe_std
 from .plotting import plot_feature_importance
 
 
