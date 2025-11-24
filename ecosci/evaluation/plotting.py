@@ -202,7 +202,7 @@ def plot_residuals(
             y_pred = last.get("y_pred")
             residuals = y_test - y_pred
 
-            (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 4))
+            _, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 4))
 
             # Predicted vs Actual
             ax1.scatter(y_test, y_pred, alpha=0.6)
