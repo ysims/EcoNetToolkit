@@ -74,12 +74,6 @@ def test_grouped_splits():
         
         print("✓ All splits are non-empty")
         
-        return True
-    except Exception as e:
-        print(f"✗ Error: {e}")
-        import traceback
-        traceback.print_exc()
-        return False
     finally:
         os.unlink(temp_file)
 
@@ -131,12 +125,13 @@ def test_hyperparameter_tuner():
         print(f"  Best params: {results['best_params']}")
         print(f"  Best score: {results['best_score']:.4f}")
         
-        return True
+        assert best_model is not None, "Best model should not be None"
+        assert 'best_params' in results, "Results should contain best_params"
     except Exception as e:
         print(f"✗ Error: {e}")
         import traceback
         traceback.print_exc()
-        return False
+        raise
 
 def test_integration():
     """Test full integration with config."""
@@ -203,7 +198,8 @@ def test_integration():
         n_test_groups = config['data'].pop('n_test_groups')
         
         loader = CSVDataLoader(**config['data'], problem_type=config['problem_type'])
-        (X_train, X_val, X_test, y_train, y_val, y_test, group_assignments) = \
+        (X_train, X_val, X_test, y_train, y_val, y_test, group_assignments, 
+         groups_train, groups_val, groups_test) = \
             loader.prepare_grouped_splits(
                 n_train_groups=n_train_groups,
                 n_val_groups=n_val_groups,
@@ -240,12 +236,6 @@ def test_integration():
             
         print(f"✓ All expected output files created")
         
-        return True
-    except Exception as e:
-        print(f"✗ Error: {e}")
-        import traceback
-        traceback.print_exc()
-        return False
     finally:
         os.unlink(temp_file)
         # Cleanup temp output dir
