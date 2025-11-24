@@ -167,7 +167,7 @@ class ModelZoo:
                     "Linear model is only for regression. Use 'logistic' for classification."
                 )
 
-            # If alpha is specified, use Ridge regression (supports regularization)
+            # If alpha is specified, use Ridge regression (supports regularisation)
             # Otherwise use plain LinearRegression
             if "alpha" in params:
                 base_model = Ridge(

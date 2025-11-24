@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Tests for hyperparameter tuning functionality.
 
-This module tests the hyperparameter optimization features including:
+This module tests the hyperparameter optimisation features including:
 - Grouped train/validation/test splits
 - Hyperparameter tuning for different model types (MLP, Random Forest)
 - Full integration of tuning with the training pipeline
@@ -128,6 +128,7 @@ def test_hyperparameter_tuner_random_forest():
     
     assert best_model is not None, "Best model should not be None"
     assert 'best_params' in results, "Results should contain best_params"
+    assert 'best_score' in results, "Results should contain best_score"
 def test_tuning_integration():
     """Test full integration with config and hyperparameter tuning."""
     # Create test data

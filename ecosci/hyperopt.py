@@ -383,7 +383,7 @@ class HyperparameterTuner:
         """Tune Linear model hyperparameters.
         
         For linear regression, there are few hyperparameters to tune,
-        but we can tune regularization if using Ridge/Lasso.
+        but we can tune regularisation if using Ridge/Lasso.
         
         Parameters
         ----------

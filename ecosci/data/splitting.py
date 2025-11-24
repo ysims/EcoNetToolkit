@@ -172,7 +172,30 @@ def prepare_grouped_splits(
     -------
     tuple
         (X_train, X_val, X_test, y_train, y_val, y_test, group_assignments,
-         groups_train, groups_val, groups_test)
+         groups_train, groups_val, groups_test, preprocessor)
+        
+    X_train : ndarray
+        Preprocessed training features
+    X_val : ndarray
+        Preprocessed validation features
+    X_test : ndarray
+        Preprocessed testing features
+    y_train : ndarray
+        Training target values
+    y_val : ndarray
+        Validation target values
+    y_test : ndarray
+        Testing target values
+    group_assignments : dict
+        Dictionary mapping split names to group IDs
+    groups_train : ndarray
+        Group IDs for training samples
+    groups_val : ndarray
+        Group IDs for validation samples
+    groups_test : ndarray
+        Group IDs for testing samples
+    preprocessor : ColumnTransformer
+        Fitted preprocessing pipeline
     """
     from .preprocessing import build_preprocessing_pipeline
     
