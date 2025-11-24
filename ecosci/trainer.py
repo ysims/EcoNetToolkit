@@ -212,7 +212,10 @@ class Trainer:
                         try:
                             y_proba = model.predict_proba(X_test)
                         except Exception as e:
-                            pass
+                            # predict_proba may fail for some classifiers (e.g., SVC without probability=True)
+                            # or when the model has issues with the data. This is not critical for training,
+                            # but we silently continue without probabilities for this fold.
+                            y_proba = None
                     
                     # save model for this run in model-specific subfolder
                     model_dir = os.path.join(self.output_dir, mname, f"fold{fold_id}")
@@ -410,7 +413,11 @@ class Trainer:
                         y_val_proba = final_model.predict_proba(X_val)
                         y_test_proba = final_model.predict_proba(X_test)
                     except Exception as e:
-                        pass
+                        # predict_proba may fail for some classifiers (e.g., SVC without probability=True)
+                        # or when the model has issues with the data. This is not critical for evaluation,
+                        # but we silently continue without probabilities. Metrics like ROC-AUC won't be available.
+                        y_val_proba = None
+                        y_test_proba = None
                 
                 # Save model
                 model_dir = os.path.join(self.output_dir, mname)
