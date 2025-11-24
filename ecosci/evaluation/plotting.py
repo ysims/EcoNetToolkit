@@ -5,7 +5,7 @@ for model evaluation, including confusion matrices, PR curves, residual plots,
 and feature importance plots.
 """
 
-from typing import Dict, Any, Optional, List
+from typing import Dict, Optional, List
 import os
 import numpy as np
 import matplotlib.pyplot as plt
@@ -202,7 +202,7 @@ def plot_residuals(
             y_pred = last.get("y_pred")
             residuals = y_test - y_pred
 
-            fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 4))
+            (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 4))
 
             # Predicted vs Actual
             ax1.scatter(y_test, y_pred, alpha=0.6)
@@ -278,7 +278,7 @@ def plot_feature_importance(
         top_stds = feature_std[top_indices]
         
         y_pos = np.arange(top_n)
-        ax.barh(y_pos, top_importances, xerr=top_stds, align='centre', alpha=0.7, capsize=3)
+        ax.barh(y_pos, top_importances, xerr=top_stds, align='center', alpha=0.7, capsize=3)
         ax.set_yticks(y_pos)
         ax.set_yticklabels([get_feature_label(idx) for idx in top_indices])
         ax.invert_yaxis()

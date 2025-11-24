@@ -15,7 +15,7 @@ Outputs:
 - `pr_curve.png`: precision-recall curve if binary and probabilities exist
 """
 
-from typing import Dict, Any, Optional
+from typing import Dict, Optional
 import os
 import json
 import numpy as np
@@ -33,7 +33,6 @@ from .plotting import (
     plot_confusion_matrices,
     plot_pr_curves,
     plot_residuals,
-    plot_feature_importance,
     plot_cv_comparison,
     plot_validation_vs_test,
 )

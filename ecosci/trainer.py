@@ -8,7 +8,7 @@ What this does:
 - Supports hyperparameter tuning with train/val/test splits
 """
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 from tqdm import tqdm
 import numpy as np
 import random

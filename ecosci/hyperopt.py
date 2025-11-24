@@ -11,7 +11,7 @@ Key features:
 - Returns best model and tuning results
 """
 
-from typing import Any, Dict, Optional, Tuple
+from typing import Dict, Optional, Tuple
 import numpy as np
 from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
 from sklearn.base import BaseEstimator
