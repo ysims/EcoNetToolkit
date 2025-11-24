@@ -58,7 +58,7 @@ def test_grouped_splits():
         )
         
         # Test grouped splits
-        (X_train, X_val, X_test, y_train, y_val, y_test, group_assignments) = \
+        (X_train, X_val, X_test, y_train, y_val, y_test, group_assignments, _, _, _) = \
             loader.prepare_grouped_splits(n_train_groups=4, n_val_groups=2, n_test_groups=2)
         
         print(f"\n✓ Successfully created grouped splits")
