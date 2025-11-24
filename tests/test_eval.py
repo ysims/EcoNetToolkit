@@ -7,7 +7,7 @@ import shutil
 import json
 import os
 
-from ecosci.eval import compute_classification_metrics, evaluate_and_report
+from ecosci.evaluation import compute_classification_metrics, evaluate_and_report
 
 
 @pytest.fixture
@@ -118,7 +118,7 @@ def test_evaluate_and_report_multiple_seeds_computes_stats(temp_output_dir):
 # Regression tests
 def test_regression_metrics_computed_correctly():
     """Test that regression metrics are computed correctly."""
-    from ecosci.eval import compute_regression_metrics
+    from ecosci.evaluation import compute_regression_metrics
 
     y_true = np.array([1.0, 2.0, 3.0, 4.0, 5.0])
     y_pred = np.array([1.1, 2.2, 2.9, 4.1, 4.8])
@@ -142,7 +142,7 @@ def test_regression_metrics_computed_correctly():
 
 def test_regression_metrics_perfect_prediction():
     """Test regression metrics for perfect predictions."""
-    from ecosci.eval import compute_regression_metrics
+    from ecosci.evaluation import compute_regression_metrics
 
     y_true = np.array([1.0, 2.0, 3.0, 4.0, 5.0])
     y_pred = y_true.copy()
@@ -158,7 +158,7 @@ def test_regression_metrics_perfect_prediction():
 
 def test_regression_metrics_with_zeros():
     """Test that MAPE is None when y_true contains zeros."""
-    from ecosci.eval import compute_regression_metrics
+    from ecosci.evaluation import compute_regression_metrics
 
     y_true = np.array([0.0, 1.0, 2.0, 3.0])
     y_pred = np.array([0.1, 1.1, 2.1, 3.1])
@@ -212,3 +212,87 @@ def test_evaluate_and_report_regression_multiple_seeds(temp_output_dir):
     assert all("r2" in m for m in summary)
     # Report is now saved in model-specific subfolder
     assert os.path.exists(os.path.join(temp_output_dir, "model", "report_model.json"))
+
+
+# Multi-output tests
+def test_multi_output_classification_metrics():
+    """Test multi-output classification metrics computation."""
+    from ecosci.evaluation import compute_multi_output_classification_metrics
+    
+    # Multi-output: predicting 2 outputs
+    y_true = np.array([[0, 1], [1, 0], [0, 1], [1, 0], [0, 1], [1, 0]])
+    y_pred = np.array([[0, 1], [1, 0], [0, 0], [1, 1], [0, 1], [1, 0]])
+    
+    metrics = compute_multi_output_classification_metrics(y_true, y_pred)
+    
+    assert "accuracy_mean" in metrics
+    assert "balanced_accuracy_mean" in metrics
+    assert "f1_mean" in metrics
+    assert "n_outputs" in metrics
+    assert metrics["n_outputs"] == 2
+    assert "per_output" in metrics
+    assert len(metrics["per_output"]) == 2
+
+
+def test_multi_output_regression_metrics():
+    """Test multi-output regression metrics computation."""
+    from ecosci.evaluation import compute_multi_output_regression_metrics
+    
+    # Multi-output: predicting 3 outputs
+    y_true = np.array([[1.0, 2.0, 3.0], [2.0, 3.0, 4.0], [3.0, 4.0, 5.0], [4.0, 5.0, 6.0]])
+    y_pred = np.array([[1.1, 2.1, 3.1], [2.1, 3.1, 4.1], [2.9, 3.9, 4.9], [4.1, 5.1, 6.1]])
+    
+    metrics = compute_multi_output_regression_metrics(y_true, y_pred)
+    
+    assert "mse_mean" in metrics
+    assert "rmse_mean" in metrics
+    assert "mae_mean" in metrics
+    assert "r2_mean" in metrics
+    assert "n_outputs" in metrics
+    assert metrics["n_outputs"] == 3
+    assert "per_output" in metrics
+    assert len(metrics["per_output"]) == 3
+
+
+def test_evaluate_and_report_multi_output_classification(temp_output_dir):
+    """Test evaluation for multi-output classification."""
+    y_true = np.array([[0, 1], [1, 0], [0, 1], [1, 0]] * 10)
+    
+    results = [
+        {
+            "seed": 42,
+            "y_pred": np.array([[0, 1], [1, 0], [0, 0], [1, 1]] * 10),
+            "y_proba": None,
+            "model_name": "model",
+        }
+    ]
+    
+    summary = evaluate_and_report(results, y_true, temp_output_dir, problem_type="classification")
+    
+    assert isinstance(summary, list)
+    assert len(summary) > 0
+    assert "accuracy_mean" in summary[0]
+    assert "n_outputs" in summary[0]
+
+
+def test_evaluate_and_report_multi_output_regression(temp_output_dir):
+    """Test evaluation for multi-output regression."""
+    np.random.seed(42)
+    y_true = np.random.randn(30, 3)  # 3 outputs
+    
+    results = [
+        {
+            "seed": 42,
+            "y_pred": y_true + np.random.randn(30, 3) * 0.1,
+            "y_proba": None,
+            "model_name": "model",
+        }
+    ]
+    
+    summary = evaluate_and_report(results, y_true, temp_output_dir, problem_type="regression")
+    
+    assert isinstance(summary, list)
+    assert len(summary) > 0
+    assert "mse_mean" in summary[0]
+    assert "n_outputs" in summary[0]
+    assert summary[0]["n_outputs"] == 3

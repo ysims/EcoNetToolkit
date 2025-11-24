@@ -12,7 +12,7 @@ from ecosci.config import load_config
 from ecosci.data import CSVDataLoader
 from ecosci.models import ModelZoo
 from ecosci.trainer import Trainer
-from ecosci.eval import evaluate_and_report
+from ecosci.evaluation import evaluate_and_report
 
 
 @pytest.fixture
@@ -315,3 +315,132 @@ def test_regression_pipeline_svm(regression_csv, temp_output_dir):
     assert len(results["svm"]) == 1
     assert "y_pred" in results["svm"][0]
     assert len(results["svm"][0]["y_pred"]) == len(y_test)
+
+
+# Multi-output integration tests
+@pytest.fixture
+def multi_output_csv():
+    """Create a temporary CSV with multiple labels."""
+    np.random.seed(42)
+    n = 100
+    data = {
+        "num1": np.random.randn(n),
+        "num2": np.random.randn(n) + 1,
+        "label1": np.random.choice([0, 1], n),
+        "label2": np.random.choice([0, 1, 2], n),
+    }
+    df = pd.DataFrame(data)
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
+        df.to_csv(f, index=False)
+        return f.name
+
+
+def test_multi_output_classification_pipeline(multi_output_csv, temp_output_dir):
+    """Test complete pipeline for multi-output classification."""
+    loader = CSVDataLoader(
+        path=multi_output_csv,
+        features=["num1", "num2"],
+        labels=["label1", "label2"],
+        test_size=0.2,
+        val_size=0.2,
+        random_state=42,
+        problem_type="classification",
+    )
+    X_train, X_val, X_test, y_train, y_val, y_test = loader.prepare()
+    
+    # Verify multi-output shape
+    assert y_train.shape[1] == 2
+    assert y_test.shape[1] == 2
+    
+    cfg = {
+        "problem_type": "classification",
+        "models": [
+            {"name": "random_forest", "params": {"n_estimators": 50, "random_state": 42}},
+            {"name": "logistic", "params": {"max_iter": 500, "random_state": 42}},
+        ],
+        "training": {"repetitions": 2, "random_seed": 0},
+        "output_dir": temp_output_dir,
+    }
+    
+    trainer = Trainer(
+        ModelZoo.get_model, problem_type="classification", output_dir=temp_output_dir
+    )
+    results = trainer.run(cfg, X_train, X_val, X_test, y_train, y_val, y_test)
+    
+    # Verify predictions have correct shape
+    assert results["random_forest"][0]["y_pred"].shape == y_test.shape
+    assert results["logistic"][0]["y_pred"].shape == y_test.shape
+    
+    summary = evaluate_and_report(
+        results, y_test, temp_output_dir, problem_type="classification"
+    )
+    
+    # Check that we got multi-output metrics
+    assert "accuracy_mean" in summary[0]
+    assert "n_outputs" in summary[0]
+    assert summary[0]["n_outputs"] == 2
+
+
+def test_multi_output_regression_pipeline(temp_output_dir):
+    """Test complete pipeline for multi-output regression."""
+    np.random.seed(42)
+    n = 100
+    data = {
+        "num1": np.random.randn(n),
+        "num2": np.random.randn(n) + 1,
+        "target1": np.random.randn(n) * 2,
+        "target2": np.random.randn(n) * 3 + 5,
+    }
+    df = pd.DataFrame(data)
+    
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
+        df.to_csv(f, index=False)
+        csv_path = f.name
+    
+    loader = CSVDataLoader(
+        path=csv_path,
+        features=["num1", "num2"],
+        labels=["target1", "target2"],
+        test_size=0.2,
+        val_size=0.2,
+        random_state=42,
+        problem_type="regression",
+    )
+    X_train, X_val, X_test, y_train, y_val, y_test = loader.prepare()
+    
+    # Verify multi-output shape
+    assert y_train.shape[1] == 2
+    assert y_test.shape[1] == 2
+    
+    cfg = {
+        "problem_type": "regression",
+        "models": [
+            {"name": "random_forest", "params": {"n_estimators": 50, "random_state": 42}},
+            {"name": "mlp", "params": {"hidden_layer_sizes": [16], "max_iter": 200, "random_state": 42}},
+        ],
+        "training": {"repetitions": 2, "random_seed": 0},
+        "output_dir": temp_output_dir,
+    }
+    
+    trainer = Trainer(
+        ModelZoo.get_model, problem_type="regression", output_dir=temp_output_dir
+    )
+    
+    import warnings
+    from sklearn.exceptions import ConvergenceWarning
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", category=ConvergenceWarning)
+        results = trainer.run(cfg, X_train, X_val, X_test, y_train, y_val, y_test)
+    
+    # Verify predictions have correct shape
+    assert results["random_forest"][0]["y_pred"].shape == y_test.shape
+    assert results["mlp"][0]["y_pred"].shape == y_test.shape
+    
+    summary = evaluate_and_report(
+        results, y_test, temp_output_dir, problem_type="regression"
+    )
+    
+    # Check that we got multi-output metrics
+    assert "mse_mean" in summary[0]
+    assert "n_outputs" in summary[0]
+    assert summary[0]["n_outputs"] == 2

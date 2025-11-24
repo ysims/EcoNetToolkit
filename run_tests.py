@@ -19,6 +19,7 @@ TEST_MODULES = {
     "trainer": "tests/test_trainer.py",
     "eval": "tests/test_eval.py",
     "config": "tests/test_config.py",
+    "hyperopt": "tests/test_hyperopt.py",
     "integration": "tests/test_integration.py",
 }
 

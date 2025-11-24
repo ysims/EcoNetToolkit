@@ -141,3 +141,60 @@ def test_svm_regression():
     params = model.get_params()
     assert params["C"] == 1.0
     assert params["kernel"] == "rbf"
+
+
+# Multi-output tests
+def test_multi_output_classification_wrapping():
+    """Test that models are wrapped for multi-output classification."""
+    from sklearn.multioutput import MultiOutputClassifier
+    
+    # Logistic regression should be wrapped
+    model = ModelZoo.get_model(
+        "logistic", problem_type="classification", params={"random_state": 42}, n_outputs=2
+    )
+    assert isinstance(model, MultiOutputClassifier)
+    
+    # Random Forest should NOT be wrapped (native support)
+    model_rf = ModelZoo.get_model(
+        "random_forest", problem_type="classification", params={"random_state": 42}, n_outputs=2
+    )
+    assert not isinstance(model_rf, MultiOutputClassifier)
+
+
+def test_multi_output_regression_wrapping():
+    """Test that models are wrapped for multi-output regression."""
+    from sklearn.multioutput import MultiOutputRegressor
+    
+    # Linear regression should be wrapped
+    model = ModelZoo.get_model(
+        "linear", problem_type="regression", params={}, n_outputs=2
+    )
+    assert isinstance(model, MultiOutputRegressor)
+    
+    # Random Forest should NOT be wrapped (native support)
+    model_rf = ModelZoo.get_model(
+        "random_forest", problem_type="regression", params={"random_state": 42}, n_outputs=2
+    )
+    assert not isinstance(model_rf, MultiOutputRegressor)
+    
+    # MLP Regressor should NOT be wrapped (native support)
+    model_mlp = ModelZoo.get_model(
+        "mlp", problem_type="regression", params={"random_state": 42}, n_outputs=2
+    )
+    assert not isinstance(model_mlp, MultiOutputRegressor)
+
+
+def test_single_output_not_wrapped():
+    """Test that single output models are not wrapped."""
+    from sklearn.multioutput import MultiOutputClassifier, MultiOutputRegressor
+    
+    # Single output should not be wrapped
+    model_cls = ModelZoo.get_model(
+        "logistic", problem_type="classification", params={"random_state": 42}, n_outputs=1
+    )
+    assert not isinstance(model_cls, MultiOutputClassifier)
+    
+    model_reg = ModelZoo.get_model(
+        "linear", problem_type="regression", params={}, n_outputs=1
+    )
+    assert not isinstance(model_reg, MultiOutputRegressor)
