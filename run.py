@@ -9,7 +9,7 @@ from ecosci.config import load_config
 from ecosci.data import CSVDataLoader
 from ecosci.models import ModelZoo
 from ecosci.trainer import Trainer
-from ecosci.eval import evaluate_and_report, evaluate_and_report_cv
+from ecosci.evaluation import evaluate_and_report, evaluate_and_report_cv
 
 parser = argparse.ArgumentParser(description="Train a model using a YAML config.")
 parser.add_argument("--config", required=True, help="Path to YAML config file")
@@ -84,7 +84,7 @@ if tuning_enabled and cv_group_column is not None:
     
     # Evaluate on both validation and test sets
     # For tuning mode, we want to see performance on both val and test
-    from ecosci.eval import evaluate_tuning_results
+    from ecosci.evaluation import evaluate_tuning_results
     summary = evaluate_tuning_results(
         results,
         y_val,

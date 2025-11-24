@@ -152,7 +152,7 @@ class Trainer:
         Returns
         -------
         dict
-            Results organized as {model_name: [run_results_with_fold_info]}
+            Results organised as {model_name: [run_results_with_fold_info]}
         """
         models_cfg = cfg.get("models", [])
         
@@ -252,7 +252,7 @@ class Trainer:
     ):
         """Run training with hyperparameter tuning.
         
-        This method performs hyperparameter optimization on the training + validation
+        This method performs hyperparameter optimisation on the training + validation
         sets, then evaluates the best model on the held-out test set. Multiple seeds
         are used for stable results.
         
@@ -282,7 +282,7 @@ class Trainer:
         Returns
         -------
         dict
-            Results organized as {model_name: [run_results_with_tuning_info]}
+            Results organised as {model_name: [run_results_with_tuning_info]}
         """
         from ecosci.hyperopt import HyperparameterTuner
         

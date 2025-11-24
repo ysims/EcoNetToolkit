@@ -12,7 +12,7 @@ from ecosci.config import load_config
 from ecosci.data import CSVDataLoader
 from ecosci.models import ModelZoo
 from ecosci.trainer import Trainer
-from ecosci.eval import evaluate_and_report
+from ecosci.evaluation import evaluate_and_report
 
 
 @pytest.fixture

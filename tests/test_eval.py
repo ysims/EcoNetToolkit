@@ -7,7 +7,7 @@ import shutil
 import json
 import os
 
-from ecosci.eval import compute_classification_metrics, evaluate_and_report
+from ecosci.evaluation import compute_classification_metrics, evaluate_and_report
 
 
 @pytest.fixture
@@ -118,7 +118,7 @@ def test_evaluate_and_report_multiple_seeds_computes_stats(temp_output_dir):
 # Regression tests
 def test_regression_metrics_computed_correctly():
     """Test that regression metrics are computed correctly."""
-    from ecosci.eval import compute_regression_metrics
+    from ecosci.evaluation import compute_regression_metrics
 
     y_true = np.array([1.0, 2.0, 3.0, 4.0, 5.0])
     y_pred = np.array([1.1, 2.2, 2.9, 4.1, 4.8])
@@ -142,7 +142,7 @@ def test_regression_metrics_computed_correctly():
 
 def test_regression_metrics_perfect_prediction():
     """Test regression metrics for perfect predictions."""
-    from ecosci.eval import compute_regression_metrics
+    from ecosci.evaluation import compute_regression_metrics
 
     y_true = np.array([1.0, 2.0, 3.0, 4.0, 5.0])
     y_pred = y_true.copy()
@@ -158,7 +158,7 @@ def test_regression_metrics_perfect_prediction():
 
 def test_regression_metrics_with_zeros():
     """Test that MAPE is None when y_true contains zeros."""
-    from ecosci.eval import compute_regression_metrics
+    from ecosci.evaluation import compute_regression_metrics
 
     y_true = np.array([0.0, 1.0, 2.0, 3.0])
     y_pred = np.array([0.1, 1.1, 2.1, 3.1])
@@ -217,7 +217,7 @@ def test_evaluate_and_report_regression_multiple_seeds(temp_output_dir):
 # Multi-output tests
 def test_multi_output_classification_metrics():
     """Test multi-output classification metrics computation."""
-    from ecosci.eval import compute_multi_output_classification_metrics
+    from ecosci.evaluation import compute_multi_output_classification_metrics
     
     # Multi-output: predicting 2 outputs
     y_true = np.array([[0, 1], [1, 0], [0, 1], [1, 0], [0, 1], [1, 0]])
@@ -236,7 +236,7 @@ def test_multi_output_classification_metrics():
 
 def test_multi_output_regression_metrics():
     """Test multi-output regression metrics computation."""
-    from ecosci.eval import compute_multi_output_regression_metrics
+    from ecosci.evaluation import compute_multi_output_regression_metrics
     
     # Multi-output: predicting 3 outputs
     y_true = np.array([[1.0, 2.0, 3.0], [2.0, 3.0, 4.0], [3.0, 4.0, 5.0], [4.0, 5.0, 6.0]])

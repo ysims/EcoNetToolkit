@@ -1,4 +1,4 @@
-"""Hyperparameter optimization for different model types.
+"""Hyperparameter optimisation for different model types.
 
 This module provides hyperparameter tuning functionality using scikit-learn's
 search methods (GridSearchCV, RandomizedSearchCV). Each model type has a dedicated

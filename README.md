@@ -442,7 +442,7 @@ python run.py --config configs/penguins_config.yaml
 python run.py --config configs/possum_config.yaml
 ```
 
-These demonstrate that the toolkit works correctly for both problem types and generates appropriate metrics and visualizations.
+These demonstrate that the toolkit works correctly for both problem types and generates appropriate metrics and visualisations.
 
 ## Troubleshooting
 
