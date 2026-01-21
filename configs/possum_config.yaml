@@ -81,6 +81,11 @@ models:
     params:
       fit_intercept: true
 
+  # Random baseline for comparison
+  - name: random
+    params:
+      strategy: mean         # Predicts the mean of training targets
+
 # Training configuration
 training:
   repetitions: 10            # Train each model 10 times with different seeds

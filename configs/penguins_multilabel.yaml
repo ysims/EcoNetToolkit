@@ -54,6 +54,11 @@ models:
       max_iter: 1000
       class_weight: balanced
 
+  # Random baseline for comparison
+  - name: random
+    params:
+      strategy: stratified   # Predicts based on class distribution
+
 # Training configuration
 training:
   repetitions: 5           # Train 5 times with different seeds

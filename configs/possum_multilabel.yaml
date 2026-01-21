@@ -51,6 +51,11 @@ models:
   - name: linear
     params: {}
 
+  # Random baseline for comparison
+  - name: random
+    params:
+      strategy: mean         # Predicts the mean of training targets
+
 # Training configuration
 training:
   repetitions: 5           # Train 5 times with different seeds

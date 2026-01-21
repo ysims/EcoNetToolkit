@@ -7,6 +7,7 @@ Supported model names (set in YAML under `models[].name`):
 - xgboost      : gradient boosting trees (requires `xgboost` package)
 - logistic     : logistic regression (classification baseline)
 - linear       : linear regression (regression only)
+- random       : random baseline (uses sklearn DummyClassifier/DummyRegressor)
 
 All model hyperparameters come from `models[].params` in the YAML and are passed
 through to the underlying scikit-learn/xgboost classes. This keeps the code
@@ -185,6 +186,28 @@ class ModelZoo:
                 from sklearn.multioutput import MultiOutputRegressor
                 return MultiOutputRegressor(base_model)
             return base_model
+
+        if name.lower() == "random":
+            from sklearn.dummy import DummyClassifier, DummyRegressor
+
+            # DummyClassifier/Regressor serve as random baselines
+            # Strategies for classification: "most_frequent", "prior", "stratified", "uniform"
+            # Strategies for regression: "mean", "median", "quantile", "constant"
+            if problem_type == "classification":
+                strategy = params.get("strategy", "stratified")
+                base_model = DummyClassifier(
+                    strategy=strategy,
+                    random_state=params.get("random_state", 0),
+                    **{k: v for k, v in params.items() if k not in ["strategy", "random_state"]},
+                )
+                return ModelZoo.wrap_for_multioutput(base_model, problem_type, n_outputs)
+            else:
+                strategy = params.get("strategy", "mean")
+                base_model = DummyRegressor(
+                    strategy=strategy,
+                    **{k: v for k, v in params.items() if k not in ["strategy", "random_state"]},
+                )
+                return ModelZoo.wrap_for_multioutput(base_model, problem_type, n_outputs)
 
         raise ValueError(f"Unknown model name: {name}")
     
