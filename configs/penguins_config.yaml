@@ -75,6 +75,11 @@ models:
       solver: adam
       learning_rate: adaptive
 
+  # Random baseline for comparison
+  - name: random
+    params:
+      strategy: stratified   # Predicts based on class distribution
+
 training:
   repetitions: 10          # Train 10 times with different random seeds
   random_seed: 42         # Base seed for reproducibility
