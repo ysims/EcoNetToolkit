@@ -20,8 +20,8 @@ from typing import Any, Dict
 class ModelZoo:
     @staticmethod
     def get_model(
-        name: str, 
-        problem_type: str = "classification", 
+        name: str,
+        problem_type: str = "classification",
         params: Dict[str, Any] = None,
         n_outputs: int = 1
     ):
@@ -39,6 +39,17 @@ class ModelZoo:
             Number of output targets. If > 1, wraps the model in MultiOutput wrapper.
         """
         params = params or {}
+        # If model_path is provided, load the model from disk
+        model_path = params.get("model_path")
+        no_train = params.get("no_train", False)
+        if model_path:
+            import joblib
+            model = joblib.load(model_path)
+            # If no_train is True, return the loaded model directly
+            if no_train:
+                return model
+            # Otherwise, return the loaded model for further training (fit will be called)
+            return model
 
         if name.lower() == "mlp":
             from sklearn.neural_network import MLPClassifier, MLPRegressor

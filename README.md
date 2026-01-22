@@ -25,7 +25,9 @@ EcoNetToolkit lets you train a shallow neural network or classical models on you
     - [Inspecting Saved Models](#inspecting-saved-models)
   - [Config reference (YAML)](#config-reference-yaml)
     - [Simple example (single model, classification)](#simple-example-single-model-classification)
+    - [Multi-output (multi-target) prediction](#multi-output-multi-target-prediction)
     - [Available models and key parameters](#available-models-and-key-parameters)
+  - [Loading a model from a saved path](#loading-a-model-from-a-saved-path)
     - [Notes on metrics](#notes-on-metrics)
     - [Additional notes](#additional-notes)
   - [Hyperparameter Tuning](#hyperparameter-tuning)
@@ -305,6 +307,27 @@ See `configs/penguins_multilabel.yaml` and `configs/possum_multilabel.yaml` for 
 
 **Linear Regression** (regression only)
 - `fit_intercept`: Whether to calculate the intercept (default: `true`)
+
+## Loading a model from a saved path
+
+You can load a previously trained model directly from a file by specifying `model_path` in the model's `params` section of your YAML config. This is useful for reusing or updating models without retraining.
+
+**Example:**
+
+```yaml
+models:
+  - name: random_forest
+    params:
+      model_path: outputs/possum/random_forest/model_random_forest_seed42.joblib
+      no_train: true  # If true, use the loaded model with no further training
+```
+
+- If `no_train: true`, EcoNetToolkit will use the loaded model for prediction only and will not retrain it with the current data.
+- If `no_train` is omitted or set to `false`, the loaded model will be further trained (fit) on the current data, allowing you to continue training or fine-tune.
+
+If `model_path` is provided, EcoNetToolkit will load the model from disk using joblib and use it for predictions or further evaluation. All other parameters are ignored when loading from a path and `no_train: true`.
+
+---
 
 ### Notes on metrics
 
