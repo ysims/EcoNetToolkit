@@ -46,24 +46,26 @@ def compute_classification_metrics(y_true, y_pred, y_proba=None) -> Dict[str, An
     )
 
     out = {}
+    observed_labels = np.unique(np.concatenate([np.asarray(y_true), np.asarray(y_pred)]))
+    average_mode = "binary" if len(observed_labels) == 2 else "macro"
     out["accuracy"] = accuracy_score(y_true, y_pred)
     out["balanced_accuracy"] = balanced_accuracy_score(y_true, y_pred)
     out["precision"] = precision_score(
         y_true,
         y_pred,
-        average="binary" if len(np.unique(y_true)) == 2 else "macro",
+        average=average_mode,
         zero_division=0,
     )
     out["recall"] = recall_score(
         y_true,
         y_pred,
-        average="binary" if len(np.unique(y_true)) == 2 else "macro",
+        average=average_mode,
         zero_division=0,
     )
     out["f1"] = f1_score(
         y_true,
         y_pred,
-        average="binary" if len(np.unique(y_true)) == 2 else "macro",
+        average=average_mode,
         zero_division=0,
     )
     out["cohen_kappa"] = cohen_kappa_score(y_true, y_pred)

@@ -3,7 +3,19 @@
 import os
 import json
 import pandas as pd
+from pandas.api.types import is_numeric_dtype
 from ..metrics import safe_std
+
+
+def _numeric_summary_columns(df):
+    """Return metric columns that can be averaged safely."""
+    cols = []
+    for col in df.columns:
+        if col in ["seed", "fold"]:
+            continue
+        if is_numeric_dtype(df[col]):
+            cols.append(col)
+    return cols
 
 
 def save_cv_reports(model_name, all_fold_metrics, fold_summaries, folds, overall_df, output_dir):
@@ -43,19 +55,18 @@ def save_cv_reports(model_name, all_fold_metrics, fold_summaries, folds, overall
     for fold_id in sorted(folds.keys()):
         fold_results_list = fold_summaries[fold_id]
         fold_df = pd.DataFrame(fold_results_list)
+        numeric_cols = _numeric_summary_columns(fold_df)
         
         # Calculate mean and std for each metric
         fold_summary = {"fold": fold_id}
-        for col in fold_df.columns:
-            if col not in ["seed", "fold"]:
+        for col in numeric_cols:
                 fold_summary[f"{col}_mean"] = fold_df[col].mean()
                 fold_summary[f"{col}_std"] = fold_df[col].std()
         fold_summary_data.append(fold_summary)
     
     # Add overall row
     overall_summary = {"fold": "overall"}
-    for col in overall_df.columns:
-        if col not in ["seed", "fold"]:
+    for col in _numeric_summary_columns(overall_df):
             overall_summary[f"{col}_mean"] = overall_df[col].mean()
             overall_summary[f"{col}_std"] = overall_df[col].std()
     fold_summary_data.append(overall_summary)

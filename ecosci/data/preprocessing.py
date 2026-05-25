@@ -112,13 +112,14 @@ def encode_labels(y, labels: List[str], problem_type: str = "classification"):
     from sklearn.preprocessing import LabelEncoder
     import numpy as np
     import pandas as pd
+    from pandas.api.types import is_numeric_dtype
     
     label_encoders = {}
     label_classes_dict = {}
     
     if len(labels) == 1:
         # Single output: maintain backward compatibility
-        if y.dtype == "object" or y.dtype.name == "category":
+        if problem_type == "classification" and not is_numeric_dtype(y):
             label_encoder = LabelEncoder()
             y_encoded = label_encoder.fit_transform(y)
             label_encoders[labels[0]] = label_encoder
@@ -130,7 +131,7 @@ def encode_labels(y, labels: List[str], problem_type: str = "classification"):
         # Multi-output: encode each column separately
         y_encoded = []
         for col in labels:
-            if y[col].dtype == "object" or y[col].dtype.name == "category":
+            if problem_type == "classification" and not is_numeric_dtype(y[col]):
                 label_encoder = LabelEncoder()
                 y_col_encoded = label_encoder.fit_transform(y[col])
                 label_encoders[col] = label_encoder

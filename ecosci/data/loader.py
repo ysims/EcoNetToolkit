@@ -110,6 +110,17 @@ class CSVDataLoader:
 
         df = self.load()
 
+        # If grouping column and label exist, show class distribution per group
+        if self.cv_group_column is not None and self.labels is not None:
+            try:
+                label_col = self.labels[0] if len(self.labels) == 1 else self.labels
+                if label_col in df.columns and self.cv_group_column in df.columns:
+                    print("\nClass distribution by group (crosstab):")
+                    print(pd.crosstab(df[self.cv_group_column], df[label_col]))
+            except Exception:
+                # Don't fail data preparation for this optional diagnostic
+                pass
+
         if self.labels is None:
             raise ValueError("Label column(s) must be provided in config")
 
@@ -230,6 +241,16 @@ class CSVDataLoader:
             raise ValueError("cv_group_column must be specified for k-fold cross-validation")
         
         df = self.load()
+
+        # Diagnostic: show class counts per group to detect missing classes
+        if self.cv_group_column is not None and self.labels is not None:
+            try:
+                label_col = self.labels[0] if len(self.labels) == 1 else self.labels
+                if label_col in df.columns and self.cv_group_column in df.columns:
+                    print("\nClass distribution by group (crosstab):")
+                    print(pd.crosstab(df[self.cv_group_column], df[label_col]))
+            except Exception:
+                pass
         
         if self.labels is None:
             raise ValueError("Label column(s) must be provided in config")
@@ -325,6 +346,16 @@ class CSVDataLoader:
             raise ValueError("cv_group_column must be specified for grouped train/val/test splits")
         
         df = self.load()
+
+        # Diagnostic: show class counts per group to help choose n_train/n_val/n_test
+        if self.cv_group_column is not None and self.labels is not None:
+            try:
+                label_col = self.labels[0] if len(self.labels) == 1 else self.labels
+                if label_col in df.columns and self.cv_group_column in df.columns:
+                    print("\nClass distribution by group (crosstab):")
+                    print(pd.crosstab(df[self.cv_group_column], df[label_col]))
+            except Exception:
+                pass
         
         if self.labels is None:
             raise ValueError("Label column(s) must be provided in config")
