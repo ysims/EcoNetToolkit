@@ -8,6 +8,9 @@ and feature importance plots.
 from typing import Dict, Optional, List
 import os
 import numpy as np
+import matplotlib
+
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd

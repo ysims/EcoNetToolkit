@@ -4,6 +4,7 @@
 import argparse
 import numpy as np
 import os
+import sys
 
 from ecosci.config import load_config
 from ecosci.data import CSVDataLoader
@@ -44,6 +45,26 @@ loader = CSVDataLoader(
 
 # Get output directory
 output_dir = cfg.get("output", {}).get("dir", "outputs")
+
+# Mirror console output to a log file in the output directory
+os.makedirs(output_dir, exist_ok=True)
+
+
+class _Tee:
+    def __init__(self, *streams):
+        self.streams = streams
+
+    def write(self, data):
+        for stream in self.streams:
+            stream.write(data)
+
+    def flush(self):
+        for stream in self.streams:
+            stream.flush()
+
+
+log_file = open(os.path.join(output_dir, "run.log"), "w")
+sys.stdout = _Tee(sys.stdout, log_file)
 
 # Train
 trainer = Trainer(

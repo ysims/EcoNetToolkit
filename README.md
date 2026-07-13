@@ -150,7 +150,8 @@ outputs/
     ├── comparison_r2.png
     ├── comparison_accuracy.png        # Comparison plots (classification)
     ├── comparison_f1.png
-    └── pr_curve_comparison.png        # Combined PR curves (classification)
+    ├── pr_curve_comparison.png        # Combined PR curves (classification)
+    └── run.log                        # Full console output from the run
 ```
 
 **Model-specific outputs** (in each model subfolder):
@@ -164,6 +165,7 @@ outputs/
 - `report_all_models.json`: combined metrics across all models and seeds
 - `comparison_*.png`: side-by-side boxplots comparing model performance
 - `pr_curve_comparison.png`: overlaid precision-recall curves (classification)
+- `run.log`: a copy of everything printed to the console during the run
 
 ### Inspecting Saved Models
 
