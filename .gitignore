@@ -1,5 +1,7 @@
 # Project specific ignores
 outputs/
+*.yaml
+*.csv
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
