@@ -10,6 +10,7 @@ from .preprocessing import (
     encode_labels,
 )
 from .splitting import prepare_cv_folds, prepare_grouped_splits
+from .spatial import assign_spatial_blocks
 
 
 class CSVDataLoader:
@@ -50,6 +51,13 @@ class CSVDataLoader:
         "classification" or "regression"
     cv_group_column : str, optional
         Column name for grouping in cross-validation
+    spatial_blocks : dict, optional
+        If set, automatically derives `cv_group_column` from coordinates
+        instead of requiring a pre-existing column. Keys: `lon_col`,
+        `lat_col` (default "longitude"/"latitude"), `n_blocks` (default 10).
+        Samples are clustered into spatially coherent blocks with KMeans, so
+        grouping/CV on `cv_group_column` keeps spatially autocorrelated
+        neighbours together rather than splitting them across train/test.
     """
 
     def __init__(
@@ -65,6 +73,7 @@ class CSVDataLoader:
         impute_strategy: str = "mean",
         problem_type: str = "classification",
         cv_group_column: Optional[str] = None,
+        spatial_blocks: Optional[dict] = None,
     ):
         self.path = path
         self.features = features
@@ -85,10 +94,31 @@ class CSVDataLoader:
         self.impute_strategy = impute_strategy
         self.problem_type = problem_type
         self.cv_group_column = cv_group_column
+        self.spatial_blocks = spatial_blocks
 
     def load(self) -> pd.DataFrame:
-        """Read the CSV into a DataFrame."""
+        """Read the CSV into a DataFrame, adding spatial-block groups if configured."""
         df = pd.read_csv(self.path)
+        if self.spatial_blocks is not None:
+            if self.cv_group_column is None:
+                raise ValueError(
+                    "cv_group_column must be set when spatial_blocks is configured"
+                )
+            df[self.cv_group_column] = assign_spatial_blocks(
+                df,
+                lon_col=self.spatial_blocks.get("lon_col", "longitude"),
+                lat_col=self.spatial_blocks.get("lat_col", "latitude"),
+                n_blocks=self.spatial_blocks.get("n_blocks", 10),
+                random_state=self.spatial_blocks.get(
+                    "random_state", self.random_state
+                ),
+            )
+            print(
+                f"\nAssigned {df[self.cv_group_column].nunique()} spatial blocks "
+                f"from '{self.spatial_blocks.get('lon_col', 'longitude')}'/"
+                f"'{self.spatial_blocks.get('lat_col', 'latitude')}' "
+                f"-> '{self.cv_group_column}'"
+            )
         return df
     
     def _get_feature_names_after_transform(self, preprocessor, numeric_cols, cat_cols):
