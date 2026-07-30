@@ -41,6 +41,7 @@ loader = CSVDataLoader(
     impute_strategy=data_cfg.get("impute_strategy", "mean"),
     problem_type=problem_type,
     cv_group_column=cv_group_column,
+    spatial_blocks=data_cfg.get("spatial_blocks"),
 )
 
 # Get output directory
