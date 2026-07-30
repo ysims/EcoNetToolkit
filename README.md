@@ -411,6 +411,32 @@ training:
 
 For detailed information, see [docs/HYPERPARAMETER_TUNING.md](docs/HYPERPARAMETER_TUNING.md)
 
+### Grouping without a group column: K-means spatial blocks
+
+Grouped splits and grouped CV (above) need a `cv_group_column` — e.g. `patch_id` or
+`site` — to keep spatially autocorrelated samples together. If your data has
+coordinates but no ready-made group column, set `spatial_blocks` under `data:` and
+EcoNetToolkit will cluster samples into spatially coherent blocks with K-means and
+generate that column for you:
+
+```yaml
+data:
+  path: data/mangrove.csv
+  cv_group_column: spatial_block   # name for the generated column
+  spatial_blocks:
+    lon_col: pu_x                  # default: "longitude"
+    lat_col: pu_y                  # default: "latitude"
+    n_blocks: 10                   # default: 10 (capped at number of rows)
+
+  n_train_groups: 6
+  n_val_groups: 2
+  n_test_groups: 2
+```
+
+- `cv_group_column` must still be set (it's the name K-means writes its block labels to) — it just no longer needs to already exist in the CSV.
+- Each row is assigned to one of `n_blocks` clusters based on `lon_col`/`lat_col`, so neighbouring points end up in the same block and are never split across train/val/test.
+- Works with both grouped train/val/test splits (`prepare_grouped_splits`) and `GroupKFold` cross-validation.
+
 ## Using your own data
 
 1. Place your CSV file in the `data` folder.
