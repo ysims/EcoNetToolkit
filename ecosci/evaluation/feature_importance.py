@@ -119,9 +119,12 @@ def extract_feature_importance(
             
             # Average importances across all models
             if all_importances:
-                # Average across all seeds
-                avg_feature_importances = np.mean(all_importances, axis=0)
-                std_feature_importances = np.std(all_importances, axis=0)
+                # Average across all seeds (nan-aware: for regression, a
+                # single-sample test set makes permutation importance's R^2
+                # scorer undefined for that seed, and a plain mean would let
+                # that one NaN wipe out every feature's average)
+                avg_feature_importances = np.nanmean(all_importances, axis=0)
+                std_feature_importances = np.nanstd(all_importances, axis=0)
                 
                 print(f"\n{model_name.upper()}:")
                 print(f"{'-'*80}")
@@ -272,11 +275,15 @@ def extract_cv_feature_importance(
                     fold_avg_importance = np.mean(fold_importances_list, axis=0)
                     fold_importances_dict[fold_id] = fold_avg_importance
             
-            # Average importances across all folds
+            # Average importances across all folds (nan-aware: for regression,
+            # a fold whose test set has fewer than 2 samples makes permutation
+            # importance's R^2 scorer undefined for that fold, and a plain
+            # mean would let that one NaN-only fold wipe out every feature's
+            # average)
             if fold_importances_dict:
                 all_fold_importances = list(fold_importances_dict.values())
-                avg_feature_importances = np.mean(all_fold_importances, axis=0)
-                std_feature_importances = np.std(all_fold_importances, axis=0)
+                avg_feature_importances = np.nanmean(all_fold_importances, axis=0)
+                std_feature_importances = np.nanstd(all_fold_importances, axis=0)
                 
                 print(f"\n{model_name.upper()}:")
                 print(f"{'-'*80}")

@@ -47,7 +47,13 @@ def compute_classification_metrics(y_true, y_pred, y_proba=None) -> Dict[str, An
 
     out = {}
     observed_labels = np.unique(np.concatenate([np.asarray(y_true), np.asarray(y_pred)]))
-    average_mode = "binary" if len(observed_labels) == 2 else "macro"
+    # "binary" average is only valid when the task truly has exactly 2 classes.
+    # Use y_proba's column count when available to detect multiclass tasks even if
+    # a CV fold happens to contain only 2 labels (e.g. a spatial block missing a class).
+    if y_proba is not None and getattr(y_proba, "ndim", 0) == 2:
+        average_mode = "binary" if y_proba.shape[1] == 2 else "macro"
+    else:
+        average_mode = "binary" if set(observed_labels.tolist()) == {0, 1} else "macro"
     out["accuracy"] = accuracy_score(y_true, y_pred)
     out["balanced_accuracy"] = balanced_accuracy_score(y_true, y_pred)
     out["precision"] = precision_score(
