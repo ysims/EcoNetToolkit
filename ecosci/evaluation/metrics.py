@@ -47,13 +47,13 @@ def compute_classification_metrics(y_true, y_pred, y_proba=None) -> Dict[str, An
 
     out = {}
     observed_labels = np.unique(np.concatenate([np.asarray(y_true), np.asarray(y_pred)]))
-    # "binary" mode is only valid when the observed labels are exactly {0, 1}
-    # (how LabelEncoder encodes a true 2-class problem). A multiclass problem
-    # can still show only 2 distinct labels within a single CV fold (e.g. a
-    # spatial block missing one class) - those folds must use "macro" instead,
-    # otherwise precision/recall/f1 default to pos_label=1 and raise a
-    # ValueError when label 1 isn't one of the two present.
-    average_mode = "binary" if set(observed_labels.tolist()) == {0, 1} else "macro"
+    # "binary" average is only valid when the task truly has exactly 2 classes.
+    # Use y_proba's column count when available to detect multiclass tasks even if
+    # a CV fold happens to contain only 2 labels (e.g. a spatial block missing a class).
+    if y_proba is not None and getattr(y_proba, "ndim", 0) == 2:
+        average_mode = "binary" if y_proba.shape[1] == 2 else "macro"
+    else:
+        average_mode = "binary" if set(observed_labels.tolist()) == {0, 1} else "macro"
     out["accuracy"] = accuracy_score(y_true, y_pred)
     out["balanced_accuracy"] = balanced_accuracy_score(y_true, y_pred)
     out["precision"] = precision_score(
